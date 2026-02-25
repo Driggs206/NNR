@@ -185,6 +185,18 @@
     color: #fbbf24;
   }
 
+  .mute-btn {
+    position: absolute; top: 1rem; left: 1rem;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 5px 10px;
+    font-size: 1rem; cursor: pointer;
+    pointer-events: all;
+    transition: all 0.15s;
+    color: white; line-height: 1;
+  }
+  .mute-btn:hover { background: rgba(255,255,255,0.1); }
+
   /* ── LEVEL UP ── */
   #levelupScreen {
     background: rgba(5, 3, 15, 0.88);
@@ -265,13 +277,166 @@
   }
   .retry-btn:hover { transform: scale(1.06); }
 
+  /* ── ENERGY / SUPERMOVE HUD ── */
+  .hud-bottom-left {
+    position: absolute; bottom: 1.8rem; left: 1rem;
+    display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
+  }
+  .energy-wrap {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px; padding: 4px 10px;
+    display: flex; align-items: center; gap: 8px;
+    min-width: 160px;
+  }
+  .energy-track {
+    flex: 1; height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px; overflow: hidden;
+  }
+  .energy-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #06b6d4, #a5f3fc);
+    transition: width 0.15s ease;
+  }
+  .energy-fill.charged {
+    background: linear-gradient(90deg, #facc15, #fde68a);
+    box-shadow: 0 0 8px #facc1580;
+    animation: energyPulse 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes energyPulse {
+    from { box-shadow: 0 0 4px #facc1560; }
+    to   { box-shadow: 0 0 18px #facc15cc; }
+  }
+  .super-hint {
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 1px;
+    color: #fde68a; text-transform: uppercase; white-space: nowrap;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .super-hint.visible { opacity: 1; animation: hintBounce 0.8s ease-in-out infinite alternate; }
+  @keyframes hintBounce {
+    from { transform: scale(1); } to { transform: scale(1.08); }
+  }
+  .super-active-flash {
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 4;
+    opacity: 0; transition: opacity 0.08s;
+  }
+  .super-active-flash.show { opacity: 1; }
+
+  /* ── GOLD COUNTER ── */
+  .gold-counter {
+    position: absolute; top: 1rem; right: 8rem;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,215,0,0.25);
+    border-radius: 12px; padding: 5px 12px;
+    font-size: 0.85rem; font-weight: 700;
+    color: #fbbf24;
+  }
+
+  /* ── PAUSE SCREEN ── */
+  #pauseScreen {
+    background: rgba(5,3,15,0.82);
+    backdrop-filter: blur(14px);
+    gap: 1rem;
+    text-align: center;
+  }
+  .pause-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 3rem; color: #c9a0ff;
+    text-shadow: 0 0 30px #8b5cf6;
+    margin-bottom: 0.5rem;
+  }
+  .pause-subtitle { color: #6b7280; font-size: 0.85rem; letter-spacing: 2px; margin-bottom: 1.5rem; }
+  .pause-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem; padding: 0.65em 2.5em;
+    border: none; border-radius: 50px; cursor: pointer;
+    transition: all 0.18s; width: 220px; display: block;
+    margin: 0 auto 0.5rem;
+  }
+  .pause-btn:hover { transform: scale(1.05); }
+  .pause-btn-resume  { background: linear-gradient(135deg,#8b5cf6,#c084fc); color:#fff; box-shadow:0 5px 18px rgba(139,92,246,0.4); }
+  .pause-btn-town    { background: linear-gradient(135deg,#d97706,#fbbf24); color:#fff; box-shadow:0 5px 18px rgba(251,191,36,0.35); }
+  .pause-btn-retry   { background: linear-gradient(135deg,#16a34a,#4ade80); color:#fff; box-shadow:0 5px 18px rgba(74,222,128,0.35); }
+  .pause-btn-menu    { background: rgba(255,255,255,0.06); color:#9ca3af; border:1px solid rgba(255,255,255,0.1); }
+  .pause-controls {
+    margin-top: 1rem; color: #4b5563; font-size: 0.72rem;
+    line-height: 2; letter-spacing: 0.5px;
+  }
+  .pause-controls kbd {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px; padding: 1px 6px; font-size: 0.7rem; color: #9ca3af;
+  }
+
+  /* ── TOWN SCREEN ── */
+  #townScreen {
+    background: radial-gradient(ellipse at 50% 20%, #1a1200 0%, #0a0a00 60%, #0a0a14 100%);
+    gap: 0; overflow-y: auto; padding: 2rem 1rem;
+    justify-content: flex-start;
+  }
+  .town-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem,5vw,3.5rem); color: #fbbf24;
+    text-shadow: 0 0 30px #d9770660;
+    margin-bottom: 0.2rem;
+  }
+  .town-sub { color: #78716c; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 0.4rem; }
+  .town-gold {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem; color: #fbbf24;
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 20px; padding: 6px 20px;
+    margin-bottom: 1.5rem;
+  }
+  .town-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 0.9rem; max-width: 900px; width: 100%;
+    margin-bottom: 1.5rem;
+  }
+  .town-card {
+    background: rgba(255,255,255,0.03);
+    border: 2px solid rgba(251,191,36,0.15);
+    border-radius: 16px; padding: 1.1rem 1rem;
+    text-align: center; transition: all 0.2s;
+    position: relative;
+  }
+  .town-card:not(.maxed):not(.cant-afford) { cursor: pointer; }
+  .town-card:not(.maxed):not(.cant-afford):hover {
+    border-color: #fbbf24;
+    background: rgba(251,191,36,0.07);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .town-card.cant-afford { opacity: 0.45; }
+  .town-card.maxed { border-color: rgba(74,222,128,0.3); opacity: 0.7; }
+  .town-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+  .town-name { font-family: 'Fredoka One', cursive; font-size: 1rem; color: #fde68a; margin-bottom: 0.3rem; }
+  .town-desc { font-size: 0.72rem; color: #78716c; line-height: 1.4; margin-bottom: 0.5rem; }
+  .town-cost { font-size: 0.8rem; font-weight: 700; color: #fbbf24; }
+  .town-level {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 0.65rem; font-weight: 800; color: #6b7280;
+    letter-spacing: 1px;
+  }
+  .town-maxed-label { font-size: 0.72rem; color: #4ade80; font-weight: 700; margin-top: 0.2rem; }
+  .town-leave-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem; padding: 0.7em 3em;
+    border: none; border-radius: 50px;
+    background: linear-gradient(135deg,#8b5cf6,#c084fc);
+    color: white; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(139,92,246,0.4);
+    transition: all 0.2s; margin-top: 0.5rem;
+  }
+  .town-leave-btn:hover { transform: scale(1.05); }
+
   /* ── FLOATING TEXT ── */
   .float-text {
-    position: absolute;
-    pointer-events: none;
-    font-weight: 800;
-    font-size: 0.85rem;
-    z-index: 6;
+    position: absolute; pointer-events: none;
+    font-weight: 800; font-size: 0.85rem; z-index: 6;
     animation: floatUp 1s ease-out forwards;
   }
   @keyframes floatUp {
@@ -294,6 +459,9 @@
 <!-- GAME CANVAS -->
 <canvas id="gameCanvas"></canvas>
 
+<!-- SUPERMOVE FLASH -->
+<div id="superFlash" class="super-active-flash"></div>
+
 <!-- HUD -->
 <div class="screen hidden" id="hud">
   <div class="hud-top">
@@ -304,7 +472,17 @@
     </div>
     <div class="timer-box" id="timerBox">00:00</div>
   </div>
+  <div class="gold-counter" id="goldCounter">🪙 0</div>
   <div class="kill-counter" id="killCounter">💀 0</div>
+  <button class="mute-btn" id="muteBtn" title="Toggle sound">🔊</button>
+  <div class="hud-bottom-left">
+    <div class="energy-wrap">
+      <span style="font-size:0.9rem">⚡</span>
+      <div class="energy-track"><div class="energy-fill" id="energyFill" style="width:0%"></div></div>
+      <span style="font-size:0.7rem;font-weight:700;color:#9ca3af;white-space:nowrap" id="energyText">0/100</span>
+    </div>
+    <span class="super-hint" id="superHint">SPACE — SUPERMOVE!</span>
+  </div>
   <div class="xp-bar-wrap">
     <div class="xp-fill" id="xpFill" style="width:0%"></div>
   </div>
@@ -318,11 +496,36 @@
   <div class="upgrade-cards" id="upgradeCards"></div>
 </div>
 
+<!-- PAUSE SCREEN -->
+<div class="screen hidden" id="pauseScreen">
+  <div class="pause-title">⏸ Paused</div>
+  <div class="pause-subtitle">GAME PAUSED</div>
+  <button class="pause-btn pause-btn-resume"  id="pauseResume">▶ Resume</button>
+  <button class="pause-btn pause-btn-town"    id="pauseTown">🏘 Visit Town</button>
+  <button class="pause-btn pause-btn-retry"   id="pauseRetry">↺ Restart Run</button>
+  <button class="pause-btn pause-btn-menu"    id="pauseMenu">← Main Menu</button>
+  <div class="pause-controls">
+    <kbd>WASD</kbd> / <kbd>↑↓←→</kbd> Move &nbsp;|&nbsp;
+    <kbd>SPACE</kbd> Supermove &nbsp;|&nbsp;
+    <kbd>ESC</kbd> Pause
+  </div>
+</div>
+
+<!-- TOWN SCREEN -->
+<div class="screen hidden" id="townScreen">
+  <div class="town-title">🏘 Nibble Town</div>
+  <div class="town-sub">Spend your gold on permanent upgrades</div>
+  <div class="town-gold" id="townGoldDisplay">🪙 0 gold</div>
+  <div class="town-grid" id="townGrid"></div>
+  <button class="town-leave-btn" id="townLeaveBtn">Return to Battle →</button>
+</div>
+
 <!-- GAME OVER -->
 <div class="screen hidden" id="gameoverScreen">
   <div class="gameover-title">💀 Defeated!</div>
   <div class="gameover-stats" id="gameoverStats"></div>
   <button class="retry-btn" id="retryBtn">Try Again</button>
+  <button class="retry-btn" id="visitTownBtn" style="background:linear-gradient(135deg,#d97706,#fbbf24);margin-top:0.5rem;box-shadow:0 6px 20px rgba(251,191,36,0.4)">🏘 Visit Town</button>
   <button class="retry-btn" id="menuBtn" style="background:linear-gradient(135deg,#8b5cf6,#c084fc);margin-top:0.5rem;box-shadow:0 6px 20px rgba(139,92,246,0.4)">Main Menu</button>
 </div>
 
@@ -337,7 +540,13 @@ const CHARS = [
     color: '#ff9f43', glow: 'rgba(255,159,67,0.3)', shadow: 'rgba(255,159,67,0.5)',
     hp: 100, speed: 210,
     stats: { hp: 60, spd: 80, dmg: 70 },
-    weapon: { type: 'laser', damage: 18, cooldown: 0.9, range: 420, pierce: 3, count: 1 }
+    weapon: { type: 'laser', damage: 18, cooldown: 0.9, range: 420, pierce: 3, count: 1 },
+    ultimate: { name: 'Solar Overcharge', icon: '☀️', desc: 'Fires 24 lasers in all directions', color: '#ff9f43',
+      activate(p) {
+        for (let i = 0; i < 24; i++) spawnProjectile((i/24)*Math.PI*2, { ...p.weapon, damage: p.weapon.damage*2.5, pierce:99, range: p.weapon.range*1.5 });
+        triggerSuperFlash('#ff9f43');
+      }
+    }
   },
   {
     id: 'beaver', name: 'Vampire Beaver', emoji: '🦫',
@@ -345,7 +554,15 @@ const CHARS = [
     color: '#c0392b', glow: 'rgba(192,57,43,0.3)', shadow: 'rgba(192,57,43,0.5)',
     hp: 160, speed: 160,
     stats: { hp: 90, spd: 40, dmg: 60 },
-    weapon: { type: 'bite', damage: 30, cooldown: 1.1, range: 110, pierce: 1, lifesteal: 0.35 }
+    weapon: { type: 'bite', damage: 30, cooldown: 1.1, range: 110, pierce: 1, lifesteal: 0.35 },
+    ultimate: { name: 'Blood Frenzy', icon: '🩸', desc: 'Heal 60 HP + deal massive damage in melee range', color: '#ef4444',
+      activate(p) {
+        player.hp = Math.min(player.maxHp, player.hp + 60);
+        spawnFloatText(player.x, player.y - 50, '+60 HP', '#2ecc71');
+        for (let i = 0; i < 16; i++) spawnProjectile((i/16)*Math.PI*2, { ...p.weapon, damage: p.weapon.damage*4, pierce:99, range:160 });
+        triggerSuperFlash('#ef4444');
+      }
+    }
   },
   {
     id: 'catthulu', name: 'Cat-thulu', emoji: '🐱',
@@ -353,7 +570,17 @@ const CHARS = [
     color: '#9b59b6', glow: 'rgba(155,89,182,0.3)', shadow: 'rgba(155,89,182,0.5)',
     hp: 120, speed: 175,
     stats: { hp: 70, spd: 55, dmg: 85 },
-    weapon: { type: 'tentacle', damage: 22, cooldown: 1.4, range: 190, pierce: 99, count: 8, aoe: true }
+    weapon: { type: 'tentacle', damage: 22, cooldown: 1.4, range: 190, pierce: 99, count: 8, aoe: true },
+    ultimate: { name: 'Void Eruption', icon: '🌀', desc: 'Massive expanding ring of tentacles wipes all nearby enemies', color: '#9b59b6',
+      activate(p) {
+        for (let w = 0; w < 3; w++) {
+          setTimeout(() => {
+            for (let i = 0; i < 20; i++) spawnProjectile((i/20)*Math.PI*2 + w*0.1, { ...p.weapon, damage: p.weapon.damage*3, pierce:99, range: (180+w*120) });
+          }, w * 120);
+        }
+        triggerSuperFlash('#9b59b6');
+      }
+    }
   },
   {
     id: 'cobra', name: 'Chupa-Cobra', emoji: '🐍',
@@ -361,7 +588,14 @@ const CHARS = [
     color: '#27ae60', glow: 'rgba(39,174,96,0.3)', shadow: 'rgba(39,174,96,0.5)',
     hp: 90, speed: 230,
     stats: { hp: 45, spd: 95, dmg: 65 },
-    weapon: { type: 'poison', damage: 7, cooldown: 0.35, range: 240, pierce: 2, count: 3, spread: 0.4 }
+    weapon: { type: 'poison', damage: 7, cooldown: 0.35, range: 240, pierce: 2, count: 3, spread: 0.4 },
+    ultimate: { name: 'Venom Nova', icon: '☠️', desc: 'Sprays 32 poison shots in all directions, poisoning every enemy on screen', color: '#27ae60',
+      activate(p) {
+        for (let i = 0; i < 32; i++) spawnProjectile((i/32)*Math.PI*2, { ...p.weapon, damage: p.weapon.damage*2, pierce:99, range: 800 });
+        enemies.forEach(e => { e.poisoned = (e.poisoned||0) + 6; });
+        triggerSuperFlash('#27ae60');
+      }
+    }
   },
   {
     id: 'honker', name: 'Honkergeist', emoji: '🪿',
@@ -369,7 +603,18 @@ const CHARS = [
     color: '#74b9ff', glow: 'rgba(116,185,255,0.3)', shadow: 'rgba(116,185,255,0.5)',
     hp: 100, speed: 195,
     stats: { hp: 60, spd: 65, dmg: 75 },
-    weapon: { type: 'spectral', damage: 14, cooldown: 0.55, range: 380, pierce: 1, count: 4 }
+    weapon: { type: 'spectral', damage: 14, cooldown: 0.55, range: 380, pierce: 1, count: 4 },
+    ultimate: { name: 'Spectral Storm', icon: '👻', desc: 'Unleashes a rapid-fire spiral of spectral bolts in all directions', color: '#74b9ff',
+      activate(p) {
+        let shot = 0;
+        const interval = setInterval(() => {
+          for (let i = 0; i < 8; i++) spawnProjectile((i/8)*Math.PI*2 + shot*0.18, { ...p.weapon, damage: p.weapon.damage*2, pierce:3 });
+          shot++;
+          if (shot >= 8) clearInterval(interval);
+        }, 80);
+        triggerSuperFlash('#74b9ff');
+      }
+    }
   }
 ];
 
@@ -387,33 +632,386 @@ const UPGRADES_POOL = [
   { id: 'armor',   name: 'Bark Armor',        icon: '🛡️', desc: 'Reduce all damage taken by 15%',         rarity: 'rare',   apply: (p) => { p.armor = (p.armor||0) + 0.15; } },
 ];
 
+// ─── TOWN UPGRADES (persistent, bought with gold) ───
+const TOWN_UPGRADES = [
+  { id:'town_hp',     icon:'❤️',  name:'Fortified Den',    desc:'+20 max HP per rank',         cost:30, maxRank:6,
+    apply: () => {} /* applied on game start via townUpgrades */ },
+  { id:'town_spd',    icon:'🌙',  name:'Night Stride',     desc:'+8% movement speed per rank',  cost:35, maxRank:5,
+    apply: () => {} },
+  { id:'town_dmg',    icon:'🦷',  name:'Cursed Fangs',     desc:'+12% weapon damage per rank',  cost:40, maxRank:5,
+    apply: () => {} },
+  { id:'town_armor',  icon:'🛡️',  name:'Bark Plating',     desc:'+6% damage reduction per rank',cost:55, maxRank:4,
+    apply: () => {} },
+  { id:'town_regen',  icon:'🩸',  name:'Dark Sap',         desc:'+1 HP regen/sec per rank',     cost:50, maxRank:4,
+    apply: () => {} },
+  { id:'town_energy', icon:'⚡',  name:'Energy Crystal',   desc:'+15 starting energy per rank', cost:60, maxRank:4,
+    apply: () => {} },
+  { id:'town_magnet', icon:'🧲',  name:'Lure Glyph',       desc:'+25% pickup radius per rank',  cost:45, maxRank:3,
+    apply: () => {} },
+];
+
+// Persistent state (survives runs)
+let gold = 0;
+let townUpgrades = {}; // { upgradeId: rank }
+
 const ENEMY_TYPES = [
-  { name: 'Sunbeam Sprite',   emoji: '✨', hp: 18,  speed: 90,  xp: 5,  dmg: 8,  color: '#ffd700', size: 16 },
-  { name: 'Happy Honeybee',   emoji: '🐝', hp: 12,  speed: 145, xp: 7,  dmg: 6,  color: '#f0c040', size: 14 },
-  { name: 'Morning Dew',      emoji: '💧', hp: 35,  speed: 60,  xp: 10, dmg: 12, color: '#89d4f5', size: 20 },
-  { name: 'Daybloom',         emoji: '🌸', hp: 55,  speed: 40,  xp: 15, dmg: 15, color: '#ffb7c5', size: 22 },
-  { name: 'Gleaming Gem',     emoji: '💎', hp: 80,  speed: 75,  xp: 25, dmg: 20, color: '#a0f0ff', size: 24 },
+  { name: 'Sunbeam Sprite', emoji: '✨', spriteKey: 'sunsprite',  hp: 18,  speed: 90,  xp: 5,  dmg: 8,  color: '#ffd700', size: 16 },
+  { name: 'Happy Honeybee', emoji: '🐝', spriteKey: 'honeybee',   hp: 12,  speed: 145, xp: 7,  dmg: 6,  color: '#f0c040', size: 14 },
+  { name: 'Morning Dew',    emoji: '💧', spriteKey: 'dewdrop',    hp: 35,  speed: 60,  xp: 10, dmg: 12, color: '#89d4f5', size: 20 },
+  { name: 'Daybloom',       emoji: '🌸', spriteKey: 'daybloom',   hp: 55,  speed: 40,  xp: 15, dmg: 15, color: '#ffb7c5', size: 22 },
+  { name: 'Gleaming Gem',   emoji: '💎', spriteKey: 'gem',        hp: 80,  speed: 75,  xp: 25, dmg: 20, color: '#a0f0ff', size: 24 },
 ];
 
 const BOSS_TYPES = [
-  { name: 'Grand Sunkeeper',  emoji: '☀️', hp: 500, speed: 55, xp: 150, dmg: 30, color: '#ff9900', size: 45, boss: true },
-  { name: 'Queen Blossom',    emoji: '🌺', hp: 400, speed: 65, xp: 120, dmg: 25, color: '#ff69b4', size: 40, boss: true },
+  { name: 'Grand Sunkeeper', emoji: '☀️', spriteKey: 'boss_sunkeeper', hp: 500, speed: 55, xp: 150, dmg: 30, color: '#ff9900', size: 45, boss: true },
+  { name: 'Queen Blossom',   emoji: '🌺', spriteKey: 'boss_blossom',   hp: 400, speed: 65, xp: 120, dmg: 25, color: '#ff69b4', size: 40, boss: true },
 ];
+
+// ═══════════════════════════════════════════════
+//  SPRITE ASSET SYSTEM
+// ═══════════════════════════════════════════════
+// HOW TO USE CUSTOM SPRITES:
+//   1. Place PNG files in the same folder as this HTML (or any accessible URL)
+//   2. Replace null values below with file paths, e.g. 'assets/squirrel.png'
+//   3. Recommended size: 64×64 or 128×128 pixels, transparent PNG
+//   4. The game auto-falls-back to emoji if a sprite fails to load
+//
+// SPRITE KEY REFERENCE:
+//   Raiders:  'squirrel' | 'beaver' | 'catthulu' | 'cobra' | 'honker'
+//   Enemies:  'sunsprite' | 'honeybee' | 'dewdrop' | 'daybloom' | 'gem'
+//   Bosses:   'boss_sunkeeper' | 'boss_blossom'
+//   Pickups:  'xpgem'
+
+const SPRITE_PATHS = {
+  squirrel:     null,   // e.g. 'sprites/squirrel.png'
+  beaver:       null,
+  catthulu:     null,
+  cobra:        null,
+  honker:       null,
+  sunsprite:    null,
+  honeybee:     null,
+  dewdrop:      null,
+  daybloom:     null,
+  gem:          null,
+  boss_sunkeeper: null,
+  boss_blossom: null,
+  xpgem:        null,
+};
+
+const SPRITES = {}; // populated by loadSprites()
+
+function loadSprites() {
+  Object.entries(SPRITE_PATHS).forEach(([key, path]) => {
+    if (!path) return;
+    const img = new Image();
+    img.onload  = () => { SPRITES[key] = img; console.log('✅ Sprite loaded:', key); };
+    img.onerror = () => { console.warn('⚠️ Sprite failed:', key, path); };
+    img.src = path;
+  });
+}
+
+// Draw an entity: uses sprite if available, otherwise falls back to emoji.
+// Call inside a ctx.save() / ctx.restore() block with world-space translate already applied.
+function drawEntity(emoji, spriteKey, size, alpha = 1, poisoned = false) {
+  const sprite = SPRITES[spriteKey];
+  const s = size * 2.2;
+  ctx.globalAlpha = poisoned ? alpha * 0.55 : alpha;
+  if (sprite && sprite.complete && sprite.naturalWidth > 0) {
+    ctx.drawImage(sprite, -s / 2, -s / 2, s, s);
+    if (poisoned) {
+      // Green tint overlay
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = 'rgba(46,204,113,0.5)';
+      ctx.fillRect(-s / 2, -s / 2, s, s);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  } else {
+    ctx.font = s + 'px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, 0, 0);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ═══════════════════════════════════════════════
+//  AUDIO ENGINE  (Web Audio API — no external files)
+// ═══════════════════════════════════════════════
+let audioCtx = null;
+let masterGain = null;
+let musicNodes = [];
+let musicPlaying = false;
+let muted = false;
+let bgMusic = null;
+let lastShootSfx = 0;   // throttle shoot sounds
+let lastXpSfx = 0;      // throttle xp sounds
+let lastHurtSfx = 0;    // throttle hurt sounds
+
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.45;
+    masterGain.connect(audioCtx.destination);
+  } catch(e) { console.warn('Web Audio not available:', e); }
+}
+
+// ── SFX ──────────────────────────────────────────
+function playSFX(type) {
+  if (!audioCtx || muted) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const t = audioCtx.currentTime;
+
+  const osc = (freq, type_, dur, gainVal, freqEnd) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type_;
+    o.frequency.setValueAtTime(freq, t);
+    if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t + dur);
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(masterGain);
+    o.start(t); o.stop(t + dur + 0.01);
+  };
+
+  const noise = (dur, gainVal, hpFreq = 0) => {
+    const buf = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(g);
+    if (hpFreq > 0) {
+      const f = audioCtx.createBiquadFilter();
+      f.type = 'bandpass'; f.frequency.value = hpFreq;
+      g.connect(f); f.connect(masterGain);
+    } else {
+      g.connect(masterGain);
+    }
+    src.start(t);
+  };
+
+  switch (type) {
+    case 'shoot_laser':    osc(900, 'square',   0.08, 0.12, 450); break;
+    case 'shoot_bite':     osc(320, 'sawtooth', 0.07, 0.18, 180); break;
+    case 'shoot_tentacle': osc(260, 'square',   0.09, 0.14, 130); break;
+    case 'shoot_poison':   osc(700, 'sine',     0.05, 0.08, 1100); break;
+    case 'shoot_spectral': osc(500, 'triangle', 0.10, 0.10, 800); break;
+
+    case 'hit':
+      noise(0.06, 0.28, 1100);
+      break;
+
+    case 'enemy_die':
+      osc(380, 'sawtooth', 0.18, 0.22, 70);
+      noise(0.12, 0.15, 600);
+      break;
+
+    case 'player_hurt':
+      osc(180, 'square', 0.22, 0.38, 90);
+      noise(0.15, 0.20, 200);
+      break;
+
+    case 'levelup':
+      [523, 659, 784, 1047].forEach((f, i) => {
+        const start = t + i * 0.08;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.28, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+        o.connect(g); g.connect(masterGain);
+        o.start(start); o.stop(start + 0.25);
+      });
+      break;
+
+    case 'xp':
+      osc(1300, 'sine', 0.05, 0.06, 1700);
+      break;
+
+    case 'boss':
+      [110, 146, 196].forEach((f, i) => {
+        const start = t + i * 0.18;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'sawtooth'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.38, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + 0.5);
+        o.connect(g); g.connect(masterGain);
+        o.start(start); o.stop(start + 0.55);
+      });
+      break;
+
+    case 'gameover':
+      [392, 330, 294, 220].forEach((f, i) => {
+        const start = t + i * 0.22;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.35, start);
+        g.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+        o.connect(g); g.connect(masterGain);
+        o.start(start); o.stop(start + 0.45);
+      });
+      break;
+
+    case 'supermove':
+      // Big ascending sweep + impact
+      osc(200, 'sawtooth', 0.05, 0.4, 900);
+      osc(400, 'square',   0.10, 0.3, 1200);
+      [1, 2, 3, 4, 5].forEach(i => {
+        const start2 = t + i * 0.04;
+        const o2 = audioCtx.createOscillator();
+        const g2 = audioCtx.createGain();
+        o2.type = 'triangle'; o2.frequency.value = 300 * i;
+        g2.gain.setValueAtTime(0.15, start2);
+        g2.gain.exponentialRampToValueAtTime(0.001, start2 + 0.25);
+        o2.connect(g2); g2.connect(masterGain);
+        o2.start(start2); o2.stop(start2 + 0.28);
+      });
+      break;
+  }
+}
+
+// ── PROCEDURAL MUSIC ────────────────────────────
+// Dark minor-pentatonic chiptune. Three layers: bass, melody, percussion.
+const _N = { // note frequencies
+  C2:65.4, Eb2:77.8, G2:98.0, Bb2:116.5,
+  C3:130.8, Eb3:155.6, G3:196.0, Bb3:233.1, C4:261.6,
+  D4:293.7, Eb4:311.1, G4:392.0, Bb4:466.2, C5:523.3,
+};
+const BASS = ['C2','C2','G2','C2','Bb2','Bb2','G2','Bb2','Eb2','Eb2','Bb2','Eb2','G2','G2','Eb2','G2'];
+const MELO = [
+  'C4', null, 'Eb4', null, 'G4', 'Eb4', null, 'C4',
+  'Bb3', null, 'G3',  null, 'Bb3','G3',  null, 'Eb3',
+  'G4',  null, null,  'C4', 'Eb4',null,  'G3', null,
+  'C4', 'D4', 'Eb4',  null, 'C4', null,  null,  null,
+];
+const PAD  = ['C3','Eb3','G3','Bb3','C3','Eb3','G3','Bb3'];
+const STEP_SEC = 0.145;
+let _seqStep = 0, _nextNote = 0, _schedTimer = null;
+
+function startMusic() {
+  if (bgMusic) return;
+  bgMusic = new Audio('music.mp3'); // ← change filename here if needed
+  bgMusic.loop = true;
+  bgMusic.volume = muted ? 0 : 0.4;
+  bgMusic.play().catch(() => {}); // silently handle autoplay block
+}
+
+function stopMusic() {
+  if (!bgMusic) return;
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+  bgMusic = null;
+}
+
+function _scheduleMusic() {
+  if (!musicPlaying || !audioCtx) return;
+  while (_nextNote < audioCtx.currentTime + 0.25) {
+    _playMusicStep(_seqStep, _nextNote);
+    _seqStep = (_seqStep + 1) % 32;
+    _nextNote += STEP_SEC;
+  }
+  _schedTimer = setTimeout(_scheduleMusic, 60);
+}
+
+function _playMusicStep(step, time) {
+  if (muted) return;
+  const bassNote = BASS[step % BASS.length];
+  const meloNote = MELO[step % MELO.length];
+  const padNote  = PAD[step  % PAD.length];
+
+  if (bassNote) _musOsc(_N[bassNote], 'square',   time, STEP_SEC * 0.85, 0.10);
+  if (meloNote) _musOsc(_N[meloNote], 'triangle', time, STEP_SEC * 0.55, 0.07);
+  // Pad — long held note every 8 steps
+  if (step % 8 === 0 && padNote) _musOsc(_N[padNote], 'sine', time, STEP_SEC * 6, 0.04);
+  // Kick (low thud) on beats 0, 8, 16, 24
+  if (step % 8 === 0) _musKick(time);
+  // Snare on step 4, 12, 20, 28
+  if (step % 8 === 4) _musSnare(time);
+  // Hi-hat every 2 steps
+  if (step % 2 === 0) _musHihat(time);
+}
+
+function _musOsc(freq, type_, time, dur, gainVal) {
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type_; o.frequency.value = freq;
+  g.gain.setValueAtTime(gainVal, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+  o.connect(g); g.connect(masterGain);
+  o.start(time); o.stop(time + dur + 0.01);
+  musicNodes.push(o);
+}
+
+function _musKick(time) {
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(160, time);
+  o.frequency.exponentialRampToValueAtTime(40, time + 0.08);
+  g.gain.setValueAtTime(0.5, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+  o.connect(g); g.connect(masterGain);
+  o.start(time); o.stop(time + 0.14);
+  musicNodes.push(o);
+}
+
+function _musSnare(time) {
+  const buf = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * 0.09), audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const g = audioCtx.createGain();
+  const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800;
+  g.gain.setValueAtTime(0.18, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+  src.connect(f); f.connect(g); g.connect(masterGain);
+  src.start(time);
+  musicNodes.push(src);
+}
+
+function _musHihat(time) {
+  const buf = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * 0.04), audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const g = audioCtx.createGain();
+  const f = audioCtx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
+  g.gain.setValueAtTime(0.07, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+  src.connect(f); f.connect(g); g.connect(masterGain);
+  src.start(time);
+  musicNodes.push(src);
+}
+
+function setMute(isMuted) {
+  muted = isMuted;
+  if (masterGain) masterGain.gain.value = muted ? 0 : 0.45;
+  if (bgMusic) bgMusic.volume = muted ? 0 : 0.4;
+  document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+}
 
 // ═══════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════
 let canvas, ctx;
-let state = 'select'; // select | playing | levelup | gameover
+let state = 'select'; // select | playing | levelup | paused | town | gameover
+let prevState = 'playing'; // state before town/pause
 let selectedChar = null;
-let player, enemies, projectiles, xpGems, floatTexts, particles;
+let player, enemies, projectiles, xpGems, energyOrbs, goldCoins, floatTexts, particles;
 let camera = { x: 0, y: 0 };
-let keys = {};
+let keys = {}, justPressed = {};
 let kills = 0, elapsed = 0, gameStartTime = 0;
 let lastFrame = 0, lastSpawn = 0, spawnInterval = 2.0;
 let lastBossTime = 0;
 let xpToNext = 20;
-let totalXP = 0;
+let totalXP = 0, runGold = 0;
 let pendingUpgrades = false;
 
 // ═══════════════════════════════════════════════
@@ -432,6 +1030,10 @@ function buildCharSelect() {
       <span class="char-emoji">${c.emoji}</span>
       <div class="char-name">${c.name}</div>
       <div class="char-desc">${c.desc}</div>
+      <div style="margin-top:0.5em;font-size:0.65rem;color:#6b7280;background:rgba(255,255,255,0.04);border-radius:8px;padding:4px 6px;line-height:1.4">
+        ${c.ultimate.icon} <span style="color:#fde68a;font-weight:700">${c.ultimate.name}</span><br>
+        <span style="color:#4b5563">${c.ultimate.desc}</span>
+      </div>
       <div class="char-stat"><span>HP</span><span>SPD</span><span>DMG</span></div>
       <div class="stat-bar"><div class="stat-fill" style="width:${c.stats.hp}%;background:${c.color}"></div></div>
       <div class="stat-bar"><div class="stat-fill" style="width:${c.stats.spd}%;background:${c.color}"></div></div>
@@ -452,28 +1054,49 @@ function buildCharSelect() {
 // ═══════════════════════════════════════════════
 function startGame() {
   const c = selectedChar;
+
+  // Build town bonus stats
+  const tb = {
+    hp:     (townUpgrades['town_hp']    || 0) * 20,
+    spd:    1 + (townUpgrades['town_spd']   || 0) * 0.08,
+    dmg:    1 + (townUpgrades['town_dmg']   || 0) * 0.12,
+    armor:  (townUpgrades['town_armor'] || 0) * 0.06,
+    regen:  (townUpgrades['town_regen'] || 0) * 1,
+    energy: (townUpgrades['town_energy']|| 0) * 15,
+    magnet: 1 + (townUpgrades['town_magnet']|| 0) * 0.25,
+  };
+
   player = {
     x: 0, y: 0,
-    hp: c.hp, maxHp: c.hp,
-    speed: c.speed,
-    emoji: c.emoji,
-    color: c.color,
-    weapon: { ...c.weapon },
+    hp: c.hp + tb.hp, maxHp: c.hp + tb.hp,
+    speed: c.speed * tb.spd,
+    emoji: c.emoji, color: c.color,
+    weapon: { ...c.weapon, damage: c.weapon.damage * tb.dmg },
     attackTimer: 0,
     xp: 0, level: 1,
     invTime: 0,
-    regen: 0, regenTimer: 0,
-    pickupRadius: 80,
-    armor: 0,
+    regen: tb.regen, regenTimer: 0,
+    pickupRadius: 80 * tb.magnet,
+    armor: tb.armor,
     size: 20,
+    energy: tb.energy, maxEnergy: 100,
+    superReady: tb.energy >= 100,
+    superCD: 0,
   };
-  enemies = []; projectiles = []; xpGems = []; floatTexts = []; particles = [];
+  enemies = []; projectiles = []; xpGems = []; energyOrbs = []; goldCoins = [];
+  floatTexts = []; particles = [];
   kills = 0; elapsed = 0; lastSpawn = 0; spawnInterval = 2.0; lastBossTime = 0;
-  xpToNext = 20; totalXP = 0;
-  keys = {};
+  xpToNext = 20; totalXP = 0; runGold = 0;
+  keys = {}; justPressed = {};
   camera = { x: 0, y: 0 };
   gameStartTime = performance.now();
   lastFrame = performance.now();
+  lastShootSfx = 0; lastXpSfx = 0; lastHurtSfx = 0;
+
+  initAudio();
+  loadSprites();
+  stopMusic();
+  startMusic();
 
   showScreen('hud');
   state = 'playing';
@@ -484,7 +1107,7 @@ function startGame() {
 //  SCREEN MANAGEMENT
 // ═══════════════════════════════════════════════
 function showScreen(id) {
-  ['selectScreen','hud','levelupScreen','gameoverScreen'].forEach(s => {
+  ['selectScreen','hud','levelupScreen','pauseScreen','townScreen','gameoverScreen'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
   if (id) document.getElementById(id).classList.remove('hidden');
@@ -502,6 +1125,7 @@ function gameLoop(ts) {
     elapsed = (ts - gameStartTime) / 1000;
     update(dt);
   }
+  justPressed = {};
   render();
   requestAnimationFrame(gameLoop);
 }
@@ -510,10 +1134,13 @@ function gameLoop(ts) {
 //  UPDATE
 // ═══════════════════════════════════════════════
 function update(dt) {
+  handleSupermoveInput();
   movePlayer(dt);
   updateProjectiles(dt);
   updateEnemies(dt);
   updateXPGems(dt);
+  updateEnergyOrbs(dt);
+  updateGoldCoins(dt);
   updateParticles(dt);
   spawnEnemies(dt);
   attackLogic(dt);
@@ -536,6 +1163,65 @@ function movePlayer(dt) {
   if (player.invTime > 0) player.invTime -= dt;
 }
 
+function handleSupermoveInput() {
+  if (!justPressed[' ']) return;
+  if (player.energy < player.maxEnergy) return;
+  if (player.superCD > 0) return;
+  player.energy = 0;
+  player.superReady = false;
+  player.superCD = 0.5; // brief lockout
+  playSFX('supermove');
+  selectedChar.ultimate.activate(player);
+  spawnFloatText(player.x, player.y - 70, '✨ ' + selectedChar.ultimate.name + '!', selectedChar.ultimate.color);
+}
+
+function triggerSuperFlash(color) {
+  const el = document.getElementById('superFlash');
+  el.style.background = color;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 180);
+}
+
+// ── ENERGY ORBS ──────────────────────────────────
+function updateEnergyOrbs(dt) {
+  for (let i = energyOrbs.length - 1; i >= 0; i--) {
+    const o = energyOrbs[i];
+    const d = dist(player, o);
+    if (d < player.pickupRadius) {
+      const dx = player.x - o.x, dy = player.y - o.y;
+      o.x += (dx/d) * 280 * dt;
+      o.y += (dy/d) * 280 * dt;
+    }
+    if (dist(player, o) < 18) {
+      player.energy = Math.min(player.maxEnergy, player.energy + o.value);
+      energyOrbs.splice(i, 1);
+      if (player.energy >= player.maxEnergy) {
+        player.superReady = true;
+        player.energy = player.maxEnergy;
+      }
+    }
+  }
+}
+
+// ── GOLD COINS ───────────────────────────────────
+function updateGoldCoins(dt) {
+  for (let i = goldCoins.length - 1; i >= 0; i--) {
+    const c = goldCoins[i];
+    const d = dist(player, c);
+    if (d < player.pickupRadius + 20) {
+      const dx = player.x - c.x, dy = player.y - c.y;
+      c.x += (dx/d) * 260 * dt;
+      c.y += (dy/d) * 260 * dt;
+    }
+    if (dist(player, c) < 18) {
+      gold += c.value;
+      runGold += c.value;
+      goldCoins.splice(i, 1);
+      document.getElementById('goldCounter').textContent = '🪙 ' + gold;
+    }
+  }
+}
+
 function regenLogic(dt) {
   if (player.regen <= 0) return;
   player.regenTimer += dt;
@@ -555,46 +1241,34 @@ function attackLogic(dt) {
 function fireWeapon() {
   const w = player.weapon;
   const target = getNearestEnemy(w.range);
+  const count = w.count || 1;
 
-  if (w.type === 'laser' || w.type === 'bite' || w.type === 'spectral' || w.type === 'poison') {
-    const count = w.count || 1;
-    if (w.type === 'tentacle') {
-      // tentacles in all 8 directions
-      for (let i = 0; i < (w.count||8); i++) {
-        const angle = (i / (w.count||8)) * Math.PI * 2;
-        spawnProjectile(angle, w);
-      }
-    } else if (w.type === 'spectral') {
-      const baseAngles = [0, Math.PI/2, Math.PI, Math.PI*1.5];
-      for (let i = 0; i < Math.min(count, baseAngles.length + count - 4); i++) {
-        const angle = (i / count) * Math.PI * 2;
-        spawnProjectile(angle, w);
-      }
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2;
-        spawnProjectile(angle, w);
-      }
-      return;
-    } else if (w.type === 'poison') {
-      if (!target) return;
-      const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
-      const spread = w.spread || 0.3;
-      const c = w.count || 1;
-      for (let i = 0; i < c; i++) {
-        const offset = (i - (c-1)/2) * spread;
-        spawnProjectile(baseAngle + offset, w);
-      }
-      return;
-    } else {
-      if (!target && w.type !== 'laser') return;
-      const angle = target
-        ? Math.atan2(target.y - player.y, target.x - player.x)
-        : -Math.PI / 2;
-      for (let i = 0; i < count; i++) {
-        const spread = (count > 1) ? (i - (count-1)/2) * 0.15 : 0;
-        spawnProjectile(angle + spread, w);
-      }
-      return;
+  if (w.type === 'tentacle') {
+    // Fire in all directions, no target needed
+    for (let i = 0; i < count; i++) {
+      spawnProjectile((i / count) * Math.PI * 2, w);
+    }
+  } else if (w.type === 'spectral') {
+    // Fire evenly spread in all directions
+    for (let i = 0; i < count; i++) {
+      spawnProjectile((i / count) * Math.PI * 2, w);
+    }
+  } else if (w.type === 'poison') {
+    if (!target) return;
+    const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
+    const spread = w.spread || 0.3;
+    for (let i = 0; i < count; i++) {
+      spawnProjectile(baseAngle + (i - (count-1)/2) * spread, w);
+    }
+  } else {
+    // laser, bite — aim at nearest enemy
+    if (!target && w.type !== 'laser') return;
+    const angle = target
+      ? Math.atan2(target.y - player.y, target.x - player.x)
+      : -Math.PI / 2;
+    for (let i = 0; i < count; i++) {
+      const spread = (count > 1) ? (i - (count-1)/2) * 0.15 : 0;
+      spawnProjectile(angle + spread, w);
     }
   }
 }
@@ -602,6 +1276,12 @@ function fireWeapon() {
 function spawnProjectile(angle, w) {
   const speed = w.type === 'tentacle' ? 280 : w.type === 'bite' ? 220 :
                 w.type === 'poison' ? 320 : 350;
+  // Throttled shoot SFX (max once per 80ms to avoid audio spam)
+  const now = performance.now();
+  if (now - lastShootSfx > 80) {
+    lastShootSfx = now;
+    playSFX('shoot_' + w.type);
+  }
   projectiles.push({
     x: player.x, y: player.y,
     vx: Math.cos(angle) * speed,
@@ -661,6 +1341,7 @@ function updateProjectiles(dt) {
 
 function damageEnemy(e, idx, dmg, lifesteal) {
   e.hp -= dmg;
+  playSFX('hit');
   if (lifesteal > 0) {
     player.hp = Math.min(player.hp + dmg * lifesteal, player.maxHp);
     spawnFloatText(player.x, player.y - 30, '+' + Math.floor(dmg * lifesteal), '#2ecc71');
@@ -668,6 +1349,7 @@ function damageEnemy(e, idx, dmg, lifesteal) {
   spawnFloatText(e.x, e.y - 20, '-' + Math.floor(dmg), '#fff');
   if (e.hp <= 0) {
     kills++;
+    playSFX('enemy_die');
     // Drop XP gems
     const gemCount = e.boss ? 8 : 1;
     for (let g = 0; g < gemCount; g++) {
@@ -675,6 +1357,25 @@ function damageEnemy(e, idx, dmg, lifesteal) {
         x: e.x + (Math.random()-0.5)*30,
         y: e.y + (Math.random()-0.5)*30,
         value: Math.floor(e.xp / gemCount),
+      });
+    }
+    // Drop energy orb (40% chance, 80% for boss)
+    if (Math.random() < (e.boss ? 0.8 : 0.4)) {
+      energyOrbs.push({
+        x: e.x + (Math.random()-0.5)*20,
+        y: e.y + (Math.random()-0.5)*20,
+        value: e.boss ? 30 : 10 + Math.floor(Math.random() * 8),
+      });
+    }
+    // Drop gold (50% for normal, 100% for boss)
+    if (Math.random() < (e.boss ? 1.0 : 0.5)) {
+      const gVal = e.boss
+        ? 10 + Math.floor(Math.random()*15)
+        : 1 + Math.floor(Math.random() * (e.size > 18 ? 4 : 2));
+      goldCoins.push({
+        x: e.x + (Math.random()-0.5)*20,
+        y: e.y + (Math.random()-0.5)*20,
+        value: gVal,
       });
     }
     spawnDeathParticles(e.x, e.y, e.color);
@@ -702,6 +1403,8 @@ function updateEnemies(dt) {
         if (e.hp <= 0) {
           kills++;
           xpGems.push({ x: e.x, y: e.y, value: e.xp });
+          if (Math.random() < 0.4) energyOrbs.push({ x: e.x, y: e.y, value: 10 });
+          if (Math.random() < 0.5) goldCoins.push({ x: e.x, y: e.y, value: 1 + Math.floor(Math.random()*3) });
           spawnDeathParticles(e.x, e.y, e.color);
           enemies.splice(i, 1); continue;
         }
@@ -714,6 +1417,8 @@ function updateEnemies(dt) {
       player.invTime = 0.6;
       spawnFloatText(player.x, player.y - 40, '-' + dmgTaken, '#ef4444');
       screenShake(0.3);
+      const nowHurt = performance.now();
+      if (nowHurt - lastHurtSfx > 300) { lastHurtSfx = nowHurt; playSFX('player_hurt'); }
       if (player.hp <= 0) { endGame(); return; }
     }
   }
@@ -733,6 +1438,8 @@ function updateXPGems(dt) {
       player.xp += g.value;
       totalXP += g.value;
       xpGems.splice(i, 1);
+      const nowXp = performance.now();
+      if (nowXp - lastXpSfx > 60) { lastXpSfx = nowXp; playSFX('xp'); }
       checkLevelUp();
     }
   }
@@ -749,6 +1456,7 @@ function checkLevelUp() {
 }
 
 function triggerLevelUp() {
+  playSFX('levelup');
   state = 'levelup';
   showLevelUpScreen();
 }
@@ -807,13 +1515,9 @@ function spawnEnemies(dt) {
       x: player.x + Math.cos(angle) * r,
       y: player.y + Math.sin(angle) * r,
       hp: t.hp * scale, maxHp: t.hp * scale,
-      speed: t.speed,
-      xp: t.xp,
-      dmg: t.dmg,
-      emoji: t.emoji,
-      color: t.color,
-      size: t.size,
-      boss: false,
+      speed: t.speed, xp: t.xp, dmg: t.dmg,
+      emoji: t.emoji, spriteKey: t.spriteKey,
+      color: t.color, size: t.size, boss: false,
     });
   }
 
@@ -827,15 +1531,12 @@ function spawnEnemies(dt) {
       x: player.x + Math.cos(angle) * 600,
       y: player.y + Math.sin(angle) * 600,
       hp: b.hp * bossScale, maxHp: b.hp * bossScale,
-      speed: b.speed,
-      xp: b.xp,
-      dmg: b.dmg,
-      emoji: b.emoji,
-      color: b.color,
-      size: b.size,
-      boss: true,
+      speed: b.speed, xp: b.xp, dmg: b.dmg,
+      emoji: b.emoji, spriteKey: b.spriteKey,
+      color: b.color, size: b.size, boss: true,
     });
     spawnFloatText(player.x, player.y - 80, '⚠ BOSS INCOMING!', '#ff9900');
+    playSFX('boss');
   }
 }
 
@@ -884,6 +1585,17 @@ function updateHUD() {
   const mins = Math.floor(elapsed / 60).toString().padStart(2,'0');
   const secs = Math.floor(elapsed % 60).toString().padStart(2,'0');
   document.getElementById('timerBox').textContent = mins + ':' + secs;
+  // Energy
+  const ePct = (player.energy / player.maxEnergy) * 100;
+  const fill = document.getElementById('energyFill');
+  fill.style.width = ePct + '%';
+  fill.className = 'energy-fill' + (player.superReady ? ' charged' : '');
+  document.getElementById('energyText').textContent = Math.floor(player.energy) + '/100';
+  const hint = document.getElementById('superHint');
+  hint.textContent = '⚡ SPACE — ' + (selectedChar ? selectedChar.ultimate.name : 'SUPERMOVE') + '!';
+  hint.className = 'super-hint' + (player.superReady ? ' visible' : '');
+  // Supermove cooldown
+  if (player.superCD > 0) player.superCD -= 1/60;
 }
 
 // ═══════════════════════════════════════════════
@@ -979,6 +1691,38 @@ function render() {
   });
   ctx.shadowBlur = 0;
 
+  // Energy Orbs (cyan diamond shape)
+  energyOrbs.forEach(o => {
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    ctx.rotate(Math.PI/4);
+    ctx.fillStyle = '#06b6d4';
+    ctx.shadowColor = '#a5f3fc';
+    ctx.shadowBlur = 10;
+    const s = 5;
+    ctx.fillRect(-s, -s, s*2, s*2);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  });
+
+  // Gold Coins (spinning star effect)
+  goldCoins.forEach(c => {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.fillStyle = '#fbbf24';
+    ctx.shadowColor = '#fde68a';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.arc(0, 0, 2.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  });
+
   // Particles
   particles.forEach(p => {
     ctx.globalAlpha = p.life;
@@ -1012,9 +1756,7 @@ function render() {
 
     // Flash green if poisoned
     if (isInv) ctx.globalAlpha = 0.6;
-    ctx.font = e.size * 1.4 + 'px serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(e.emoji, 0, 0);
+    drawEntity(e.emoji, e.spriteKey || e.emoji, e.size, 1, isInv);
 
     ctx.globalAlpha = 1;
     ctx.restore();
@@ -1064,9 +1806,7 @@ function render() {
   }
   ctx.shadowColor = player.color;
   ctx.shadowBlur = 20;
-  ctx.font = player.size * 2 + 'px serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(player.emoji, 0, 0);
+  drawEntity(player.emoji, selectedChar ? selectedChar.id : player.emoji, player.size);
   ctx.shadowBlur = 0;
   ctx.restore();
 
@@ -1096,6 +1836,8 @@ function render() {
 // ═══════════════════════════════════════════════
 function endGame() {
   state = 'gameover';
+  stopMusic();
+  playSFX('gameover');
   const mins = Math.floor(elapsed / 60).toString().padStart(2,'0');
   const secs = Math.floor(elapsed % 60).toString().padStart(2,'0');
   document.getElementById('gameoverStats').innerHTML = `
@@ -1103,9 +1845,88 @@ function endGame() {
     Enemies defeated <span>${kills}</span><br>
     Level reached <span>${player.level}</span><br>
     Total XP collected <span>${totalXP}</span><br>
+    Gold earned this run <span>🪙 ${runGold}</span><br>
+    Total gold saved <span>🪙 ${gold}</span><br>
     Raider <span>${selectedChar.emoji} ${selectedChar.name}</span>
   `;
   showScreen('gameoverScreen');
+}
+
+// ═══════════════════════════════════════════════
+//  PAUSE
+// ═══════════════════════════════════════════════
+function togglePause() {
+  if (state === 'playing') {
+    state = 'paused';
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('pauseScreen').classList.remove('hidden');
+  } else if (state === 'paused') {
+    resumeGame();
+  }
+}
+
+function resumeGame() {
+  state = 'playing';
+  lastFrame = performance.now();
+  gameStartTime += performance.now() - lastFrame; // prevent time warp
+  document.getElementById('pauseScreen').classList.add('hidden');
+  document.getElementById('hud').classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════
+//  TOWN
+// ═══════════════════════════════════════════════
+function openTown(fromState) {
+  prevState = fromState;
+  buildTownScreen();
+  showScreen('townScreen');
+  state = 'town';
+}
+
+function leaveTown() {
+  if (prevState === 'playing' || prevState === 'paused') {
+    state = 'playing';
+    lastFrame = performance.now();
+    showScreen('hud');
+  } else {
+    // came from gameover / menu
+    state = 'select';
+    buildCharSelect();
+    showScreen('selectScreen');
+  }
+}
+
+function buildTownScreen() {
+  document.getElementById('townGoldDisplay').textContent = '🪙 ' + gold + ' gold';
+  const grid = document.getElementById('townGrid');
+  grid.innerHTML = '';
+  TOWN_UPGRADES.forEach(u => {
+    const rank = townUpgrades[u.id] || 0;
+    const maxed = rank >= u.maxRank;
+    const cost = u.cost + rank * Math.floor(u.cost * 0.5);
+    const canAfford = gold >= cost;
+    const card = document.createElement('div');
+    card.className = 'town-card' + (maxed ? ' maxed' : (!canAfford ? ' cant-afford' : ''));
+    card.innerHTML = `
+      <div class="town-level">${rank}/${u.maxRank}</div>
+      <div class="town-icon">${u.icon}</div>
+      <div class="town-name">${u.name}</div>
+      <div class="town-desc">${u.desc}</div>
+      ${maxed
+        ? '<div class="town-maxed-label">✓ Maxed Out</div>'
+        : `<div class="town-cost">${canAfford ? '🪙' : '🔒'} ${cost} gold</div>`
+      }
+    `;
+    if (!maxed && canAfford) {
+      card.onclick = () => {
+        gold -= cost;
+        townUpgrades[u.id] = rank + 1;
+        playSFX('levelup');
+        buildTownScreen();
+      };
+    }
+    grid.appendChild(card);
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -1117,8 +1938,13 @@ function dist(a, b) { return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2); }
 //  INPUT
 // ═══════════════════════════════════════════════
 document.addEventListener('keydown', e => {
+  if (!keys[e.key]) justPressed[e.key] = true;
   keys[e.key] = true;
   if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'ArrowDown') e.preventDefault();
+  // Pause toggle
+  if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+    if (state === 'playing' || state === 'paused') togglePause();
+  }
 });
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
@@ -1147,7 +1973,7 @@ window.addEventListener('load', () => {
   canvas.addEventListener('touchend', () => {
     keys['a'] = keys['d'] = keys['w'] = keys['s'] = false;
   }, {passive: true});
-  
+
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -1158,22 +1984,43 @@ window.addEventListener('load', () => {
   buildCharSelect();
   showScreen('selectScreen');
 
+  // Mute
+  document.getElementById('muteBtn').onclick = () => setMute(!muted);
+
+  // Start / Retry
   document.getElementById('startBtn').onclick = () => {
-    showScreen(null);
-    startGame();
+    initAudio(); showScreen(null); startGame();
   };
   document.getElementById('retryBtn').onclick = () => {
-    showScreen(null);
-    startGame();
+    showScreen(null); startGame();
   };
+
+  // Gameover → Town
+  document.getElementById('visitTownBtn').onclick = () => {
+    initAudio(); openTown('gameover');
+  };
+
+  // Gameover → Main Menu
   document.getElementById('menuBtn').onclick = () => {
-    state = 'select';
-    buildCharSelect();
+    stopMusic(); state = 'select'; buildCharSelect();
     showScreen('selectScreen');
     document.getElementById('startBtn').disabled = true;
     selectedChar = null;
     document.querySelectorAll('.char-card').forEach(x => x.classList.remove('selected'));
   };
+
+  // Pause screen buttons
+  document.getElementById('pauseResume').onclick = () => resumeGame();
+  document.getElementById('pauseTown').onclick   = () => { initAudio(); openTown('paused'); };
+  document.getElementById('pauseRetry').onclick  = () => { showScreen(null); startGame(); };
+  document.getElementById('pauseMenu').onclick   = () => {
+    stopMusic(); state = 'select'; buildCharSelect();
+    showScreen('selectScreen');
+    document.getElementById('startBtn').disabled = !selectedChar;
+  };
+
+  // Town leave
+  document.getElementById('townLeaveBtn').onclick = () => leaveTown();
 });
 </script>
 </body>

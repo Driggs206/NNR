@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>NibbleNight Raiders</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══ CANVAS ══════════════════════════════════════════════════════════════ -->
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+  <div id="vignetteOverlay"></div>
+</div>
+
+<!-- ═══ TITLE SCREEN ════════════════════════════════════════════════════════ -->
+<div id="titleScreen" class="screen">
+  <div class="screen-inner">
+    <div class="title-moon"></div>
+    <h1 class="title-font"></h1>
+    <div id="titleSubtitle">A cozy-chaotic nocturnal roguelite where forest raiders outlast the cheery daylight.</div>
+    <div id="titleSaveInfo" class="title-save-info">No save data yet.</div>
+    <div id="titlePrompt">Press SPACE to begin</div>
+    <button id="tapToBeginBtn">TAP TO BEGIN</button>
+    <div style="margin-top:16px;font-size:0.85rem;opacity:0.8;">Press M to toggle mute.</div>
+  </div>
+</div>
+
+<!-- ═══ CHARACTER SELECT ═════════════════════════════════════════════════════ -->
+<div id="characterScreen" class="screen hidden">
+  <div class="screen-inner">
+    <h2 class="title-font">Choose Your Raider</h2>
+    <p style="font-size:0.9rem;opacity:0.9;margin-top:4px;">Each nocturnal hero has a unique weapon pattern and supermove.</p>
+    <div class="char-grid" id="charGrid"></div>
+    <button id="charStartBtn" style="margin-top:18px;">Enter the Forest</button>
+  </div>
+</div>
+
+<!-- ═══ HUD ══════════════════════════════════════════════════════════════════ -->
+<div id="hud" class="hidden">
+  <button id="muteBtn">🔊</button>
+  <div class="hud-top">
+    <div class="hud-top-inner">
+      <div class="hp-bar"><div id="hpBarFill" class="hp-bar-fill" style="width:100%;"></div></div>
+      <div id="hpText">HP 0 / 0</div>
+      <div id="timer">00:00</div>
+    </div>
+  </div>
+  <div class="hud-top-right">
+    <div id="killCounter" class="hud-counter">Kills: 0</div>
+    <div id="goldCounter" class="hud-counter">Gold: 0</div>
+  </div>
+  <div class="hud-bottom-left">
+    <div class="energy-bar"><div id="energyBarFill" class="energy-bar-fill" style="width:0%;"></div></div>
+    <div id="energyLabel">Energy 0 / 100 — SPACE: Super</div>
+  </div>
+  <div id="killStreakLabel"></div>
+  <div class="hud-bottom-xp">
+    <div class="xp-bar"><div id="xpBarFill" class="xp-bar-fill" style="width:0%;"></div></div>
+    <div id="levelBadge">Level 1</div>
+  </div>
+  <div id="waveBadge">Wave 1</div>
+  <div id="bossBarContainer">
+    <div id="bossNameLabel">Boss</div>
+    <div class="boss-hp-bar"><div id="bossHpFill" class="boss-hp-fill" style="width:100%;"></div></div>
+  </div>
+</div>
+
+<!-- ═══ LEVEL UP ══════════════════════════════════════════════════════════════ -->
+<div id="levelUpOverlay" class="overlay-blur hidden">
+  <div class="modal">
+    <h2>⬆ Level Up!</h2>
+    <p style="font-size:0.9rem;opacity:0.9;">Choose one upgrade to empower your raider.</p>
+    <div id="upgradeRow" class="upgrade-row"></div>
+  </div>
+</div>
+
+<!-- ═══ PAUSE ════════════════════════════════════════════════════════════════ -->
+<div id="pauseOverlay" class="overlay-blur hidden">
+  <div class="modal">
+    <h2>⏸ Paused</h2>
+    <p style="font-size:0.9rem;opacity:0.9;">Take a breather beneath the moonlight.</p>
+    <div class="pause-actions">
+      <button id="btnResume">Resume</button>
+      <button id="btnVisitTown">Visit Town</button>
+      <button id="btnRestart">Restart Run</button>
+      <button id="btnMainMenu">Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOWN ══════════════════════════════════════════════════════════════════ -->
+<div id="townScreen" class="screen hidden">
+  <div class="screen-inner">
+    <h2 class="title-font">Night Market</h2>
+    <p style="font-size:0.9rem;opacity:0.9;margin-top:4px;">Spend gold to enhance all future runs.</p>
+    <div style="margin-top:8px;font-size:0.9rem;">Gold: <span id="townGoldLabel">0</span></div>
+    <div class="town-grid" id="townGrid"></div>
+    <div style="margin-top:14px;"><button id="townBackBtn">← Back</button></div>
+  </div>
+</div>
+
+<!-- ═══ GAME OVER ════════════════════════════════════════════════════════════ -->
+<div id="gameOverScreen" class="screen hidden">
+  <div class="screen-inner">
+    <h2 class="title-font">Nightfall Fades</h2>
+    <div id="gameOverStats"></div>
+    <div class="gameover-actions">
+      <button id="btnTryAgain">Try Again</button>
+      <button id="btnVisitTownFromOver">Visit Town</button>
+      <button id="btnMainMenuFromOver">Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOUCH CONTROLS ════════════════════════════════════════════════════════ -->
+<div id="touchControls" class="hidden">
+  <div id="joystickBase"></div>
+  <div id="joystickKnob"></div>
+  <button id="btnSuper">⚡</button>
+  <button id="btnPauseMobile">⏸</button>
+</div>
+
+<!-- ═══ TOAST ════════════════════════════════════════════════════════════════ -->
+<div id="toast">Progress saved</div>
+
+<!-- ═══ BOOT ══════════════════════════════════════════════════════════════════ -->
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

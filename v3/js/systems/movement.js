@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════ SYSTEMS: MOVEMENT ══════════════════
 
-import { G, Engine } from '../core/state.js';
+import { G, Engine }              from '../core/state.js';
+import { updatePlayerAnimator }   from '../sprites/spriteAnimator.js';
 
 export function movePlayer(dt) {
   const p  = G.player;
@@ -8,10 +9,10 @@ export function movePlayer(dt) {
   const jv = Engine.joyVec;
 
   let mx = 0, my = 0;
-  if (k['KeyW'] || k['ArrowUp'])    my -= 1;
-  if (k['KeyS'] || k['ArrowDown'])  my += 1;
-  if (k['KeyA'] || k['ArrowLeft'])  mx -= 1;
-  if (k['KeyD'] || k['ArrowRight']) mx += 1;
+  if (k['KeyW']  || k['ArrowUp'])    my -= 1;
+  if (k['KeyS']  || k['ArrowDown'])  my += 1;
+  if (k['KeyA']  || k['ArrowLeft'])  mx -= 1;
+  if (k['KeyD']  || k['ArrowRight']) mx += 1;
 
   if (Math.abs(jv.x) > 0.05 || Math.abs(jv.y) > 0.05) {
     mx += jv.x;
@@ -23,4 +24,7 @@ export function movePlayer(dt) {
 
   p.x += mx * p.baseSpeed * dt;
   p.y += my * p.baseSpeed * dt;
+
+  // Update animation based on movement direction
+  updatePlayerAnimator(p, dt, mx, my);
 }

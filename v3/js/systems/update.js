@@ -1,17 +1,17 @@
 // ═══════════════════════════════════════ SYSTEMS: UPDATE (main tick) ════════
 
-import { G, Engine }         from '../core/state.js';
-import { movePlayer }         from './movement.js';
-import { spawnEnemy, spawnBoss } from './spawn.js';
-import { handleAttacks }      from './attack.js';
-import { projectileHitEnemy, damagePlayer } from './damage.js';
-import { updatePickups }      from './pickups.js';
+import { G, Engine }                        from '../core/state.js';
+import { movePlayer }                        from './movement.js';
+import { spawnEnemy, spawnBoss }             from './spawn.js';
+import { handleAttacks }                     from './attack.js';
+import { projectileHitEnemy, damagePlayer, removeEnemy } from './damage.js';
+import { updatePickups }                     from './pickups.js';
 import { showWaveBadge, updateHudAll, updateBossBar } from '../rendering/drawHud.js';
-import { showLevelUpOverlay } from '../ui/levelUp.js';
+import { showLevelUpOverlay }                from '../ui/levelUp.js';
 
-const SPAWN_INTERVAL_MIN = 0.25;
+const SPAWN_INTERVAL_MIN  = 0.25;
 const SPAWN_INTERVAL_BASE = 1.2;
-const BOSS_INTERVAL = 90;
+const BOSS_INTERVAL       = 90;
 
 export function updateGame(dt) {
   G.time            += dt;
@@ -84,6 +84,7 @@ function updateProjectiles(dt) {
 
     for (const e of victims()) {
       if (pr.pierce <= 0) break;
+      if (e.dying) continue;
       if (Math.hypot(e.x - pr.x, e.y - pr.y) <= e.radius + pr.radius) {
         projectileHitEnemy(pr, e);
       }
@@ -94,10 +95,30 @@ function updateProjectiles(dt) {
 
 // ── Enemy tick ────────────────────────────────────────────────────────────────
 function updateEnemies(dt) {
-  const p = G.player;
+  const p   = G.player;
   const all = [...G.enemies, ...(G.boss && G.bossAlive ? [G.boss] : [])];
 
   for (const e of all) {
+    // if dying, tick animator and remove when death anim finishes
+    if (e.dying) {
+      // countdown to drop release
+      if (e.dropTimer > 0) {
+        e.dropTimer -= dt;
+        if (e.dropTimer <= 0 && e.pendingDrops) {
+          for (const drop of e.pendingDrops) G.pickups.push(drop);
+          e.pendingDrops = null;
+        }
+      }
+
+      if (e.animator) {
+        e.animator.update(dt);
+        if (e.animator.onceDone) removeEnemy(e);
+      } else {
+        removeEnemy(e);
+      }
+      continue;
+    }
+
     // move toward player
     const dx   = p.x - e.x;
     const dy   = p.y - e.y;
@@ -105,11 +126,18 @@ function updateEnemies(dt) {
     e.x += (dx / dist) * e.speed * dt;
     e.y += (dy / dist) * e.speed * dt;
 
+    // directional animation
+    if (e.animator) {
+      if (dx < 0) e.animator.play('left');
+      else        e.animator.play('right');
+      e.animator.update(dt);
+    }
+
     // poison tick
     if (e.poisoned && e.poisonTime > 0) {
       e.poisonTime -= dt;
       e.hp -= e.poisonDps * dt;
-      if (e.hp <= 0) { projectileHitEnemy({ dmg:0, pierce:99, type:'', poisonDot:0 }, e); }
+      if (e.hp <= 0) projectileHitEnemy({ dmg:0, pierce:99, type:'', poisonDot:0 }, e);
       if (e.poisonTime <= 0) e.poisoned = false;
     }
 
@@ -117,8 +145,6 @@ function updateEnemies(dt) {
     if (Math.hypot(e.x - p.x, e.y - p.y) <= e.radius + p.radius)
       damagePlayer(12);
   }
-
-  // prune dead (removed via splice in onEnemyDeath)
 }
 
 // ── Floaters + particles ──────────────────────────────────────────────────────

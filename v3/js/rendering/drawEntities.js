@@ -16,16 +16,21 @@ export function drawPlayer(ctx, p) {
   ctx.ellipse(p.x, p.y + 14, 20, 8, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  const asset = spriteAssets[p.id];
-  if (asset && asset.loaded && asset.image) {
-    const size = 48 * (asset.conf.scale || 1);
-    ctx.drawImage(asset.image, p.x - size/2, p.y - size/2, size, size);
+  if (p.animator) {
+    // animated spritesheet player
+    p.animator.draw(ctx, p.x, p.y, 48);
   } else {
-    ctx.shadowBlur = 0;
-    ctx.font = '26px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(p.emoji, p.x, p.y);
+    const asset = spriteAssets[p.id];
+    if (asset && asset.loaded && asset.image) {
+      const size = 48 * (asset.conf.scale || 1);
+      ctx.drawImage(asset.image, p.x - size/2, p.y - size/2, size, size);
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.font = '26px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.emoji, p.x, p.y);
+    }
   }
 
   ctx.restore();
@@ -37,15 +42,18 @@ export function drawEnemy(ctx, e, isBoss = false) {
 
   const asset = spriteAssets[e.id];
   if (asset && asset.loaded && asset.image) {
-    // sprite path
-    if (e.poisoned) {
-      ctx.filter = 'hue-rotate(90deg) saturate(2)';
+    if (e.poisoned) ctx.filter = 'hue-rotate(90deg) saturate(2)';
+
+    if (e.animator) {
+      e.animator.draw(ctx, e.x, e.y, r * 2);
+    } else {
+      const size = r * 2 * (asset.conf.scale || 1);
+      ctx.drawImage(asset.image, e.x - size/2, e.y - size/2, size, size);
     }
-    const size = r * 2 * (asset.conf.scale || 1);
-    ctx.drawImage(asset.image, e.x - size / 2, e.y - size / 2, size, size);
+
     ctx.filter = 'none';
   } else {
-    // fallback: original circle
+    // fallback: circle
     ctx.shadowColor = e.poisoned ? '#4ade80' : e.color;
     ctx.shadowBlur  = 10;
     ctx.fillStyle   = e.poisoned ? '#16a34a' : e.color;
@@ -53,7 +61,6 @@ export function drawEnemy(ctx, e, isBoss = false) {
     ctx.arc(e.x, e.y, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // inner highlight
     ctx.fillStyle  = 'rgba(255,255,255,0.18)';
     ctx.shadowBlur = 0;
     ctx.beginPath();
@@ -70,7 +77,7 @@ export function drawEnemy(ctx, e, isBoss = false) {
   ctx.fillStyle = hpPct > 0.5 ? '#22c55e' : hpPct > 0.25 ? '#eab308' : '#ef4444';
   ctx.fillRect(e.x - r, e.y - r - 9, r * 2 * hpPct, 4);
 
-  // boss crown emoji
+  // boss crown
   if (isBoss) {
     ctx.font = '14px system-ui';
     ctx.textAlign = 'center';
@@ -82,11 +89,9 @@ export function drawEnemy(ctx, e, isBoss = false) {
 export function drawPickup(ctx, pk) {
   const asset = spriteAssets[pk.type];
   if (asset && asset.image) {
-    // sprite loaded — draw it
     const size = pk.radius * 2 * (asset.conf.scale || 1);
-    ctx.drawImage(asset.image, pk.x - size / 2, pk.y - size / 2, size, size);
+    ctx.drawImage(asset.image, pk.x - size/2, pk.y - size/2, size, size);
   } else if (!asset) {
-    // no sprite configured at all — draw circle fallback
     ctx.save();
     ctx.fillStyle   = pk.color;
     ctx.shadowColor = pk.color;
@@ -96,5 +101,4 @@ export function drawPickup(ctx, pk) {
     ctx.fill();
     ctx.restore();
   }
-  // if asset exists but isn't loaded yet — draw nothing (no circle overlap)
 }

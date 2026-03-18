@@ -1,41 +1,40 @@
 // ═══════════════════════════════════════ CORE: STATE ════════════════════════
-// Single shared mutable state object consumed by all systems.
-// Systems import { G } and read/write it directly.
 
-import { CHARACTERS }    from '../data/characters.js';
+import { CHARACTERS }            from '../data/characters.js';
 import { ENEMY_TYPES, BOSS_TYPES } from '../data/enemies.js';
-import { getSaveData }   from './save.js';
+import { getSaveData }           from './save.js';
+import { SpriteAnimator }        from '../sprites/spriteAnimator.js';
+import { spriteAssets }          from '../sprites/spriteAsset.js';
 
-/** Live game-run data. Null between runs. */
 export let G = null;
 
-/** Transient engine state (input, shake, screen). */
 export const Engine = {
-  currentScreen: 'title',
-  keys: {},
-  joyVec: { x:0, y:0 },
-  shake: { mag:0, timer:0 },
-  lastTimestamp: 0,
+  currentScreen:  'title',
+  keys:           {},
+  joyVec:         { x:0, y:0 },
+  shake:          { mag:0, timer:0 },
+  lastTimestamp:  0,
   selectedCharId: 'squirrel',
-  weaponTimer: 0,
-  isTouchDevice: matchMedia('(pointer:coarse)').matches,
+  weaponTimer:    0,
+  isTouchDevice:  matchMedia('(pointer:coarse)').matches,
 };
 
-/**
- * Create a fresh run game object and assign it to G.
- * @param {string} charId
- */
 export function newRun(charId) {
-  const char    = CHARACTERS.find(c => c.id === charId) || CHARACTERS[0];
-  const save    = getSaveData();
-  const town    = save.town || {};
+  const char  = CHARACTERS.find(c => c.id === charId) || CHARACTERS[0];
+  const save  = getSaveData();
+  const town  = save.town || {};
 
-  const maxHpBonus    = (town.fortifiedDen  || 0) * 20;
-  const speedMul      = 1 + (town.nightStride   || 0) * 0.08;
-  const dmgMul        = 1 + (town.cursedFangs   || 0) * 0.12;
-  const armorBonus    = (town.barkPlating    || 0) * 0.06;
-  const regenBonus    = (town.darkSap        || 0) * 1;
-  const startEnergy   = (town.energyCrystal  || 0) * 15;
+  const maxHpBonus  = (town.fortifiedDen  || 0) * 20;
+  const speedMul    = 1 + (town.nightStride   || 0) * 0.08;
+  const dmgMul      = 1 + (town.cursedFangs   || 0) * 0.12;
+  const armorBonus  = (town.barkPlating    || 0) * 0.06;
+  const regenBonus  = (town.darkSap        || 0) * 1;
+  const startEnergy = (town.energyCrystal  || 0) * 15;
+
+  // Build animator if this character has a sheet JSON loaded
+  const asset    = spriteAssets[char.id];
+  const animator = asset?.sheet ? new SpriteAnimator(char.id) : null;
+  if (animator) animator.init();
 
   const player = {
     id:          char.id,
@@ -57,6 +56,7 @@ export function newRun(charId) {
     weapon:      JSON.parse(JSON.stringify(char.weapon)),
     super:       char.super,
     invulnTimer: 0,
+    animator,          // ← new
     // per-run upgrade bonuses
     cooldownBonus:   0,
     rangeBonus:      0,

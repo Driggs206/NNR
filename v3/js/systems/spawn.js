@@ -1,10 +1,19 @@
 // ═══════════════════════════════════════ SYSTEMS: SPAWN ═════════════════════
 
-import { G }                   from '../core/state.js';
+import { G }                       from '../core/state.js';
 import { ENEMY_TYPES, BOSS_TYPES } from '../data/enemies.js';
+import { SpriteAnimator }          from '../sprites/spriteAnimator.js';
 
-const BOSS_KEYS   = Object.keys(BOSS_TYPES);
-const ENEMY_KEYS  = Object.keys(ENEMY_TYPES);
+const BOSS_KEYS  = Object.keys(BOSS_TYPES);
+const ENEMY_KEYS = Object.keys(ENEMY_TYPES);
+
+function makeAnimator(id) {
+  const anim = new SpriteAnimator(id);
+  anim.init();
+  console.log(`makeAnimator(${id}): sheet=`, anim.sheet);  // ← add this
+  if (anim.sheet) anim.play('idle');
+  return anim.sheet ? anim : null;
+}
 
 export function spawnEnemy() {
   const dist  = 380 + Math.random() * 120;
@@ -14,24 +23,25 @@ export function spawnEnemy() {
   const tId   = ENEMY_KEYS[Math.floor(Math.random() * ENEMY_KEYS.length)];
   const tmpl  = ENEMY_TYPES[tId];
 
-  const scaleHp  = 1 + G.time * 0.03;
-  const scaleSp  = 1 + G.time * 0.015;
+  const scaleHp = 1 + G.time * 0.03;
+  const scaleSp = 1 + G.time * 0.015;
 
   G.enemies.push({
-    id:       tId,
-    name:     tmpl.name,
-    x: ex,    y: ey,
-    radius:   tmpl.size,
-    hp:       tmpl.hp  * scaleHp,
-    maxHp:    tmpl.hp  * scaleHp,
-    speed:    tmpl.speed * scaleSp,
-    color:    tmpl.color,
-    xp:       tmpl.xp,
-    gold:     tmpl.gold,
-    poisoned: false,
-    poisonDps: 0,
+    id:         tId,
+    name:       tmpl.name,
+    x: ex,      y: ey,
+    radius:     tmpl.size,
+    hp:         tmpl.hp  * scaleHp,
+    maxHp:      tmpl.hp  * scaleHp,
+    speed:      tmpl.speed * scaleSp,
+    color:      tmpl.color,
+    xp:         tmpl.xp,
+    gold:       tmpl.gold,
+    poisoned:   false,
+    poisonDps:  0,
     poisonTime: 0,
-    isBoss:   false,
+    isBoss:     false,
+    animator:   makeAnimator(tId),
   });
 }
 
@@ -43,21 +53,22 @@ export function spawnBoss() {
 
   const scaleHp = 1 + G.time * 0.06;
   const boss = {
-    id:       key,
-    name:     tmpl.name,
-    x:        G.player.x + Math.cos(ang) * dist,
-    y:        G.player.y + Math.sin(ang) * dist,
-    radius:   tmpl.size,
-    hp:       tmpl.hp * scaleHp,
-    maxHp:    tmpl.hp * scaleHp,
-    speed:    tmpl.speed,
-    color:    tmpl.color,
-    xp:       tmpl.xp,
-    gold:     tmpl.gold,
-    poisoned: false,
-    poisonDps: 0,
+    id:         key,
+    name:       tmpl.name,
+    x:          G.player.x + Math.cos(ang) * dist,
+    y:          G.player.y + Math.sin(ang) * dist,
+    radius:     tmpl.size,
+    hp:         tmpl.hp * scaleHp,
+    maxHp:      tmpl.hp * scaleHp,
+    speed:      tmpl.speed,
+    color:      tmpl.color,
+    xp:         tmpl.xp,
+    gold:       tmpl.gold,
+    poisoned:   false,
+    poisonDps:  0,
     poisonTime: 0,
-    isBoss:   true,
+    isBoss:     true,
+    animator:   makeAnimator(key),
   };
 
   G.boss      = boss;

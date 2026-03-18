@@ -36,10 +36,10 @@ async function boot() {
   preloadTitleBg();
   ensureCanvasSize();   // ← add this
   loadSave();
-  buildCharacterCards();
   setupInput();
   setupMobile();
   await loadAllSprites();
+  buildCharacterCards();
   showScreen('title');
   requestAnimationFrame(gameLoop);
 }

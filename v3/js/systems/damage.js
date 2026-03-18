@@ -7,7 +7,7 @@ import { showGameOver } from '../ui/gameOver.js';
 
 // ── Apply damage to an enemy ──────────────────────────────────────────────────
 export function applyDamage(enemy, rawDmg) {
-  if (!enemy) return;
+  if (!enemy || enemy.dying) return;
   enemy.hp -= rawDmg;
   spawnFloater(enemy.x, enemy.y, `-${Math.round(rawDmg)}`, '#fecaca');
   if (enemy.hp <= 0) onEnemyDeath(enemy);
@@ -15,6 +15,7 @@ export function applyDamage(enemy, rawDmg) {
 
 // ── Projectile hits enemy ─────────────────────────────────────────────────────
 export function projectileHitEnemy(proj, enemy) {
+  if (enemy.dying) return;
   const dmg = proj.dmg * (1 - (enemy.armorReduction || 0));
   enemy.hp -= dmg;
   proj.pierce -= 1;
@@ -51,16 +52,37 @@ export function damagePlayer(amount) {
 
 // ── Enemy death ───────────────────────────────────────────────────────────────
 function onEnemyDeath(enemy) {
+  if (enemy.dying) return;
+  enemy.dying = true;
+  enemy.speed = 0;
+  enemy.dropTimer = 1.2;  // ← seconds to wait before drops appear
+
+  // stage the drops but don't push yet
+  const drops = [];
+  drops.push({ type:'xp',   x:enemy.x, y:enemy.y, radius:10, value:enemy.xp   || 3,  color:'#a855f7' });
+  drops.push({ type:'gold', x:enemy.x, y:enemy.y, radius:9,  value:enemy.gold  || 2,  color:'#facc15' });
+  if (Math.random() < (enemy.isBoss ? 0.8 : 0.4))
+    drops.push({ type:'energy', x:enemy.x, y:enemy.y, radius:8, value:20, color:'#22d3ee' });
+  enemy.pendingDrops = drops;
+
   G.kills++;
   G.killStreak++;
   G.killStreakTimer = 0;
   playSfx('enemy_die');
   spawnParticles(enemy.x, enemy.y, enemy.color || '#fbbf24');
 
-  G.pickups.push({ type:'xp',    x:enemy.x, y:enemy.y, radius:10, value:enemy.xp || 3,  color:'#a855f7' });
-  G.pickups.push({ type:'gold',  x:enemy.x, y:enemy.y, radius:9,  value:enemy.gold || 2, color:'#facc15' });
-  if (Math.random() < (enemy.isBoss ? 0.8 : 0.4))
-    G.pickups.push({ type:'energy', x:enemy.x, y:enemy.y, radius:8, value:20, color:'#22d3ee' });
+  if (enemy.animator) {
+    enemy.animator.playOnce('death');
+  } else {
+    removeEnemy(enemy);
+  }
+}
+export function removeEnemy(enemy) {
+  // flush any drops that haven't released yet
+  if (enemy.pendingDrops) {
+    for (const drop of enemy.pendingDrops) G.pickups.push(drop);
+    enemy.pendingDrops = null;
+  }
 
   if (enemy.isBoss) {
     G.bossAlive = false;

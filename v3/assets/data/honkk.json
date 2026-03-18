@@ -1,0 +1,42 @@
+{
+  "frameWidth": 78,
+  "frameHeight": 104,
+  "columns": 6,
+  "animations": [
+    {
+      "name": "idle",
+      "startFrame": 0,
+      "endFrame": 5,
+      "fps": 6,
+      "loop": true
+    },
+    {
+      "name": "right",
+      "startFrame": 6,
+      "endFrame": 11,
+      "fps": 6,
+      "loop": true
+    },
+    {
+      "name": "left",
+      "startFrame": 12,
+      "endFrame": 17,
+      "fps": 6,
+      "loop": true
+    },
+    {
+      "name": "attack",
+      "startFrame": 18,
+      "endFrame": 23,
+      "fps": 6,
+      "loop": true
+    },
+    {
+      "name": "death",
+      "startFrame": 24,
+      "endFrame": 29,
+      "fps": 6,
+      "loop": true
+    }
+  ]
+}

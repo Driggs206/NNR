@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════ UI: MOBILE CONTROLS ════════════════
 
-import { Engine }      from '../core/state.js';
-import { trySuper }    from '../systems/attack.js';
-import { togglePause } from './pause.js';
+import { Engine }        from '../core/state.js';
+import { trySuper }      from '../systems/attack.js';
+import { togglePause }   from './pause.js';
 
 const DEAD_ZONE = 12;
 const KNOB_MAX  = 32;
@@ -18,13 +18,20 @@ export function setupMobile() {
   let centerX   = 0;
   let centerY   = 0;
 
+  // base is 96px, knob is 56px — center knob at (48-28=20, 48-28=20) within base
   function setKnob(dx, dy) {
     const len   = Math.hypot(dx, dy);
     const clamp = Math.min(len, KNOB_MAX);
     const ang   = Math.atan2(dy, dx) || 0;
-    knob.style.transform =
-      `translate(${20 + Math.cos(ang) * clamp}px, ${20 + Math.sin(ang) * clamp}px)`;
+    const ox    = len > 0 ? Math.cos(ang) * clamp : 0;
+    const oy    = len > 0 ? Math.sin(ang) * clamp : 0;
+    knob.style.left      = `${48 - 28 + ox}px`;
+    knob.style.bottom    = `${48 - 28 - oy}px`;
+    knob.style.transform = '';
   }
+
+  // initialize knob to center
+  setKnob(0, 0);
 
   document.addEventListener('touchstart', ev => {
     for (const t of ev.touches) {
@@ -41,16 +48,18 @@ export function setupMobile() {
 
   document.addEventListener('touchmove', ev => {
     if (!joyActive) return;
-    const t   = ev.touches[0];
-    const dx  = t.clientX - centerX;
-    const dy  = t.clientY - centerY;
+    const t  = ev.touches[0];
+    const dx = t.clientX - centerX;
+    const dy = t.clientY - centerY;
     const len = Math.hypot(dx, dy);
+
     if (len < DEAD_ZONE) {
       Engine.joyVec.x = 0;
       Engine.joyVec.y = 0;
       setKnob(0, 0);
       return;
     }
+
     Engine.joyVec.x = dx / len;
     Engine.joyVec.y = dy / len;
     setKnob(dx, dy);

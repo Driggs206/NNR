@@ -209,3 +209,23 @@ button:disabled{opacity:0.45;cursor:not-allowed;transform:none}
   .hp-bar{width:220px}.hud-bottom-xp{width:84%}
   body{font-size:14px}
 }
+
+/* ═══════════════════════════════════════ MOBILE TOUCH FIXES ══════════════ */
+@media (pointer: coarse) {
+
+  /* Push HUD elements up/away from touch controls */
+  .hud-bottom-left  { bottom: 130px; }
+  .hud-bottom-xp    { bottom: 130px; }
+  #killStreakLabel  { bottom: 160px; }
+  #bossBarContainer { bottom: 130px; }
+
+  /* Hide "SPACE: Super" hint on mobile */
+  #energyLabel::after { content: none; }
+  #energyLabel { font-size: 0; }
+  #energyLabel::before { content: 'Energy'; font-size: 0.78rem; }
+
+  /* Char select — more compact cards on mobile */
+  .char-desc  { display: none; }
+  .char-super { font-size: 0.72rem; }
+  .char-card  { padding: 8px; }
+}

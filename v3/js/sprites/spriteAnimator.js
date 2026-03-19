@@ -80,7 +80,8 @@ export class SpriteAnimator {
     const anim = this._resolve(this.current);
     if (!anim) return;
 
-    const { frameWidth, frameHeight, frameW, frameH, scale = 1, offsetY = 0 } = this.sheet;
+    const { frameWidth, frameHeight, frameW, frameH, offsetY = 0 } = this.sheet;
+    const scale = asset.conf?.scale ?? 1;
     const fw = frameWidth  || frameW;   // support both JSON key names
     const fh = frameHeight || frameH;
 

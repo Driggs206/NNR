@@ -6,7 +6,6 @@ import { drawProjectile }        from './drawProjectile.js';
 import { drawFloaters, drawParticles } from './drawFx.js';
 import { drawTitleBackground }   from './titleBg.js';
 
-const GRID_SIZE = 64;
 
 function resizeCanvas() {
   const canvas = document.getElementById('gameCanvas');
@@ -65,28 +64,30 @@ export function renderGame() {
   ctx.restore();
 }
 
-// ── Infinite scrolling grid ───────────────────────────────────────────────────
+// ── Background tile image ────────────────────────────────────────────────────
+const bgTile = new Image();
+bgTile.src = 'assets/img/bg_tile.png';
+
+const TILE_SIZE = 128; // adjust to match your tile's natural size
+
 function drawBackground(ctx, g, W, H) {
   const camX = g.cameraX, camY = g.cameraY;
 
-  ctx.fillStyle = '#020617';
+  if (!bgTile.complete || !bgTile.naturalWidth) {
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(camX - W, camY - H, W * 2, H * 2);
+    return;
+  }
+
+  const startX = Math.floor((camX - W) / TILE_SIZE) * TILE_SIZE;
+  const startY = Math.floor((camY - H) / TILE_SIZE) * TILE_SIZE;
+
+  for (let x = startX; x < camX + W * 2; x += TILE_SIZE)
+    for (let y = startY; y < camY + H * 2; y += TILE_SIZE)
+      ctx.drawImage(bgTile, x, y, TILE_SIZE, TILE_SIZE);
+
+  // moody overlay
+  ctx.fillStyle = 'rgba(2,6,23,0.18)';
   ctx.fillRect(camX - W, camY - H, W * 2, H * 2);
-
-  ctx.strokeStyle = 'rgba(30,64,175,0.22)';
-  ctx.lineWidth   = 1;
-  const startX = Math.floor((camX - W) / GRID_SIZE) * GRID_SIZE;
-  const endX   = camX + W;
-  const startY = Math.floor((camY - H) / GRID_SIZE) * GRID_SIZE;
-  const endY   = camY + H;
-
-  ctx.beginPath();
-  for (let x = startX; x <= endX; x += GRID_SIZE) {
-    ctx.moveTo(x, startY);
-    ctx.lineTo(x, endY);
-  }
-  for (let y = startY; y <= endY; y += GRID_SIZE) {
-    ctx.moveTo(startX, y);
-    ctx.lineTo(endX,   y);
-  }
-  ctx.stroke();
 }
+

@@ -180,7 +180,7 @@ export default function App() {
   }
 
   // ── Auth gate — only if Supabase is configured ────────────
-  if (isSupabaseReady && !isLoggedIn) {
+  if (isSupabaseReady && (!isLoggedIn || isRecovery)) {
     return (
       <>
         <link rel="stylesheet" href="" />

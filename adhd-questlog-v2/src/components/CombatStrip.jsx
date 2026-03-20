@@ -94,7 +94,21 @@ export default function CombatStrip({
           <div className="monster-sprite">
             <div className={`sprite-figure monster-figure ${shake ? 'monster-hit' : ''}`}
               style={{ fontSize: monster.isBoss ? '2.2rem' : '1.8rem' }}>
-              {monster.sprite}
+              {monster.art ? (
+                <img
+                  src={`${import.meta.env.BASE_URL}${monster.art.replace(/^\//, '')}`}
+                  alt={monster.name}
+                  style={{
+                    width: monster.isBoss ? '72px' : '56px',
+                    height: monster.isBoss ? '72px' : '56px',
+                    objectFit: 'contain',
+                    imageRendering: 'pixelated',
+                  }}
+                  draggable={false}
+                />
+              ) : (
+                monster.sprite
+              )}
             </div>
             <div className="sprite-label" style={{ color: monster.color }}>
               {monster.isBoss ? '⚡ BOSS' : `Tier ${monster.tier}`}

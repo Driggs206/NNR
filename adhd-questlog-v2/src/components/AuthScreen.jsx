@@ -117,8 +117,10 @@ export default function AuthScreen({ onSignIn, onSignUp, onReset, onUpdatePasswo
     );
   }
 
+  const loginBg = `${import.meta.env.BASE_URL}art/login-bg.png`;
+
   return (
-    <div className="auth-screen">
+    <div className="auth-screen" style={{ '--login-bg': `url('${loginBg}')` }}>
       <div className="auth-card">
         {/* Logo */}
         <div className="auth-logo">
@@ -270,29 +272,36 @@ export default function AuthScreen({ onSignIn, onSignUp, onReset, onUpdatePasswo
           align-items: center;
           justify-content: center;
           padding: var(--space-4);
-          background: var(--bg-base);
           position: relative;
           overflow: hidden;
+          /* Hero background image */
+          background-image: var(--login-bg);
+          background-size: cover;
+          background-position: center center;
+          background-repeat: no-repeat;
         }
 
+        /* Dark overlay so the login card stays readable */
         .auth-screen::before {
           content: '';
           position: absolute;
           inset: 0;
-          background:
-            radial-gradient(ellipse 70% 50% at 20% 20%, rgba(79,195,247,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 50% at 80% 80%, rgba(179,157,219,0.1) 0%, transparent 55%),
-            radial-gradient(ellipse 40% 40% at 50% 50%, rgba(245,200,66,0.05) 0%, transparent 50%);
+          background: rgba(10, 8, 26, 0.55);
           pointer-events: none;
+          z-index: 0;
         }
 
         .auth-card {
-          background: var(--bg-elevated);
-          border: 1px solid var(--border-default);
+          background: rgba(16, 14, 35, 0.92);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(245,200,66,0.25);
           border-radius: var(--radius-xl);
           padding: var(--space-8);
           width: 100%;
           max-width: 420px;
+          position: relative;
+          z-index: 1;
           display: flex;
           flex-direction: column;
           gap: var(--space-5);

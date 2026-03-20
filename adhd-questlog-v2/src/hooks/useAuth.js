@@ -6,41 +6,38 @@ import { useState, useEffect } from 'react';
 import { supabase, isSupabaseReady } from '../lib/supabase';
 
 export function useAuth() {
-  const [session, setSession]       = useState(null);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState(null);
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-  // Check both the Supabase event AND the URL hash for recovery mode
+  // Detect recovery mode from URL hash immediately on load
   const hashIsRecovery = typeof window !== 'undefined' &&
-    (window.location.hash.includes('type=recovery') ||
-     (window.location.hash.includes('access_token') &&
-      !window.location.hash.includes('error')));
+    window.location.hash.includes('access_token') &&
+    !window.location.hash.includes('error=');
 
   const [isRecovery, setIsRecovery] = useState(hashIsRecovery);
 
-  // Check if URL hash contains an auth error (expired link etc)
+  // Extract error from URL hash (e.g. expired link)
   const hashError = typeof window !== 'undefined' && window.location.hash.includes('error=')
-    ? decodeURIComponent(window.location.hash.match(/error_description=([^&]*)/)?.[1] || 'Link expired')
-        .replace(/\+/g, ' ')
+    ? decodeURIComponent((window.location.hash.match(/error_description=([^&]*)/) || [])[1] || 'Link expired').replace(/\+/g, ' ')
     : null;
+
+  useEffect(() => {
     if (!isSupabaseReady) {
       setLoading(false);
       return;
     }
 
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setLoading(false);
         setError(null);
-        // PASSWORD_RECOVERY event means user clicked a reset link
         if (event === 'PASSWORD_RECOVERY') {
           setIsRecovery(true);
         }
@@ -55,12 +52,9 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { display_name: displayName },
-      },
+      options: { data: { display_name: displayName } },
     });
     if (error) { setError(error.message); return 'error'; }
-    // Email confirmation enabled: session is null but no error
     if (data?.user && !data?.session) return 'confirm_email';
     return 'ok';
   }
@@ -74,7 +68,6 @@ export function useAuth() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    // Clear local game state on sign out
     localStorage.removeItem('dq_user');
     localStorage.removeItem('dq_tasks');
     localStorage.removeItem('dq_history');

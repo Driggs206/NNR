@@ -9,9 +9,20 @@ export function useAuth() {
   const [session, setSession]       = useState(null);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
-  const [isRecovery, setIsRecovery] = useState(false);
 
-  useEffect(() => {
+  // Check both the Supabase event AND the URL hash for recovery mode
+  const hashIsRecovery = typeof window !== 'undefined' &&
+    (window.location.hash.includes('type=recovery') ||
+     (window.location.hash.includes('access_token') &&
+      !window.location.hash.includes('error')));
+
+  const [isRecovery, setIsRecovery] = useState(hashIsRecovery);
+
+  // Check if URL hash contains an auth error (expired link etc)
+  const hashError = typeof window !== 'undefined' && window.location.hash.includes('error=')
+    ? decodeURIComponent(window.location.hash.match(/error_description=([^&]*)/)?.[1] || 'Link expired')
+        .replace(/\+/g, ' ')
+    : null;
     if (!isSupabaseReady) {
       setLoading(false);
       return;
@@ -91,7 +102,7 @@ export function useAuth() {
     userId:     session?.user?.id ?? null,
     isLoggedIn: !!session,
     loading,
-    error,
+    error:      error || hashError,
     isRecovery,
     signUp,
     signIn,

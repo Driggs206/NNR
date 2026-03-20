@@ -35,7 +35,7 @@ export default function App() {
   // ── Auth ──────────────────────────────────────────────────
   const { session, userId, isLoggedIn, loading: authLoading,
           error: authError, signUp, signIn, signOut,
-          resetPassword, isSupabaseReady } = useAuth();
+          resetPassword, updatePassword, isRecovery, isSupabaseReady } = useAuth();
 
   // ── Toast / combat log ────────────────────────────────────
   const { toasts, log, addToast, dismissToast } = useToastLog();
@@ -189,6 +189,8 @@ export default function App() {
             onSignIn={signIn}
             onSignUp={signUp}
             onReset={resetPassword}
+            onUpdatePassword={updatePassword}
+            isRecovery={isRecovery}
             error={authError}
             loading={authLoading}
           />

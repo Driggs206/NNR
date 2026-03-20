@@ -6,13 +6,13 @@ import { useState, useEffect } from 'react';
 import { supabase, isSupabaseReady } from '../lib/supabase';
 
 export function useAuth() {
-  const [session, setSession]   = useState(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [session, setSession]       = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState(null);
+  const [isRecovery, setIsRecovery] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseReady) {
-      // No Supabase configured — skip auth, run in local-only mode
       setLoading(false);
       return;
     }
@@ -25,10 +25,14 @@ export function useAuth() {
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session);
         setLoading(false);
         setError(null);
+        // PASSWORD_RECOVERY event means user clicked a reset link
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsRecovery(true);
+        }
       }
     );
 
@@ -73,6 +77,14 @@ export function useAuth() {
     return !error;
   }
 
+  async function updatePassword(newPassword) {
+    setError(null);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) { setError(error.message); return false; }
+    setIsRecovery(false);
+    return true;
+  }
+
   return {
     session,
     user:       session?.user ?? null,
@@ -80,10 +92,12 @@ export function useAuth() {
     isLoggedIn: !!session,
     loading,
     error,
+    isRecovery,
     signUp,
     signIn,
     signOut,
     resetPassword,
+    updatePassword,
     isSupabaseReady,
   };
 }

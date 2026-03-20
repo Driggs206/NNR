@@ -4,12 +4,14 @@
 
 import React, { useState } from 'react';
 
-export default function AuthScreen({ onSignIn, onSignUp, onReset, error, loading }) {
-  const [mode, setMode]               = useState('login'); // 'login' | 'signup' | 'reset'
+export default function AuthScreen({ onSignIn, onSignUp, onReset, onUpdatePassword, isRecovery, error, loading }) {
+  const [mode, setMode]               = useState('login');
   const [email, setEmail]             = useState('');
   const [password, setPassword]       = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [resetSent, setResetSent]     = useState(false);
+  const [passwordUpdated, setPasswordUpdated] = useState(false);
 
   const [localLoading, setLocalLoading] = useState(false);
   const [successMsg, setSuccessMsg]     = useState('');
@@ -35,6 +37,85 @@ export default function AuthScreen({ onSignIn, onSignUp, onReset, error, loading
   }
 
   const isLoading = loading || localLoading;
+
+  const recoveryStyles = `
+    .auth-screen { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--bg-base); }
+    .auth-card { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-xl); padding: 32px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+    .auth-logo { display: flex; align-items: center; gap: 12px; }
+    .auth-logo-icon { font-size: 1.8rem; }
+    .auth-logo-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--text-primary); }
+    .auth-logo-sub { font-size: 0.75rem; color: var(--text-muted); }
+    .auth-tagline { font-size: 0.9rem; color: var(--text-secondary); }
+    .auth-field { display: flex; flex-direction: column; gap: 6px; }
+    .auth-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .auth-input { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 14px; color: var(--text-primary); font-family: var(--font-body); font-size: 0.95rem; outline: none; width: 100%; }
+    .auth-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+    .auth-error { font-size: 0.78rem; color: var(--coral); background: var(--coral-dim); border-radius: var(--radius-md); padding: 8px 12px; }
+    .auth-submit { width: 100%; justify-content: center; padding: 14px; font-size: 1rem; }
+    .auth-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+    .auth-confirm-screen { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+    .auth-confirm-icon { font-size: 3rem; }
+    .auth-confirm-title { font-size: 1.2rem; color: var(--green); }
+    .auth-confirm-body { font-size: 0.85rem; color: var(--text-muted); }
+  `;
+
+  // ── Password recovery mode ─────────────────────────────
+  if (isRecovery) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-card">
+          <div className="auth-logo">
+            <div className="auth-logo-icon">⚔</div>
+            <div>
+              <div className="auth-logo-title">Dopamine Quest</div>
+              <div className="auth-logo-sub">Turn tasks into victories.</div>
+            </div>
+          </div>
+
+          {passwordUpdated ? (
+            <div className="auth-confirm-screen">
+              <div className="auth-confirm-icon">✅</div>
+              <div className="auth-confirm-title font-display">Password updated!</div>
+              <div className="auth-confirm-body">You're now signed in. Close this and start questing.</div>
+            </div>
+          ) : (
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (newPassword.length < 6) return;
+              setLocalLoading(true);
+              const ok = await onUpdatePassword(newPassword);
+              setLocalLoading(false);
+              if (ok) setPasswordUpdated(true);
+            }}>
+              <div className="auth-tagline">Set your new password.</div>
+              <div className="auth-field">
+                <label className="auth-label">New Password</label>
+                <input
+                  type="password"
+                  className="auth-input"
+                  placeholder="At least 6 characters"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  minLength={6}
+                  required
+                  autoFocus
+                />
+              </div>
+              {error && <div className="auth-error">⚠ {error}</div>}
+              <button
+                type="submit"
+                className="btn btn-primary auth-submit"
+                disabled={localLoading || newPassword.length < 6}
+              >
+                {localLoading ? '⟳ Saving...' : '✓ Set New Password'}
+              </button>
+            </form>
+          )}
+        </div>
+        <style>{recoveryStyles}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-screen">

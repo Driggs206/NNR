@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { calcDisplayDPS } from '../engine/combatEngine';
 import { CombatLog } from './CombatToasts';
+import Avatar from './Avatar';
 
 export default function CombatStrip({
   monster,
@@ -17,6 +18,7 @@ export default function CombatStrip({
   monstersKilled = 0,
   onToggleLowEnergy,
   combatLog = [],
+  user,
 }) {
   const [shake, setShake] = useState(false);
   const hpPercent = Math.max(0, (currentHp / monster.max_hp) * 100);
@@ -66,7 +68,9 @@ export default function CombatStrip({
         <div className={`combat-arena ${shake ? 'shake' : ''}`}>
           {/* Player sprite */}
           <div className="player-sprite">
-            <div className="sprite-figure player-figure">🧙‍♂️</div>
+            <div className="sprite-figure player-figure">
+              <Avatar avatarId={user?.avatarId} displayName={user?.displayName} size={48} />
+            </div>
             <div className="sprite-label">You</div>
             {activeBuffs.length > 0 && (
               <div className="buff-indicators">

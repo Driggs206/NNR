@@ -9,6 +9,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { EQUIPMENT_SLOTS, ITEMS, RARITY_COLORS, getEquipmentStats, getSellPrice } from '../data/items';
 import { calcDisplayDPS, getPlayerStats } from '../engine/combatEngine';
 import { useDragDrop } from '../hooks/useDragDrop';
+import Avatar from '../components/Avatar';
 
 // ─── Drag ghost — follows cursor/finger ──────────────────
 function DragGhost({ item, pos }) {
@@ -717,7 +718,7 @@ function PaperDollSlot({ slotMeta, itemId, onUnequip, onSell, isOver, isDragComp
   );
 }
 
-function PaperDoll({ equipped, onUnequip, onSell, playerStats, overSlot, draggingItem }) {
+function PaperDoll({ equipped, onUnequip, onSell, playerStats, overSlot, draggingItem, user }) {
   const dps = calcDisplayDPS(playerStats);
   const leftSlots  = ['head', 'body', 'legs', 'boots'];
   const rightSlots = ['gloves', 'ring', 'ring2', 'necklace'];
@@ -752,7 +753,11 @@ function PaperDoll({ equipped, onUnequip, onSell, playerStats, overSlot, draggin
       <div className="pd-character">
         <div className="pd-char-figure">
           <div className="pd-char-glow" />
-          <span className="pd-char-sprite">🧙‍♂️</span>
+          <Avatar
+            avatarId={user?.avatarId}
+            displayName={user?.displayName}
+            size={64}
+          />
         </div>
         <div className="pd-char-stats">
           <div className="pd-char-dps">⚔ {dps} DPS</div>
@@ -985,7 +990,7 @@ function PaperDoll({ equipped, onUnequip, onSell, playerStats, overSlot, draggin
 }
 
 // ─── Main screen ──────────────────────────────────────────
-export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
+export default function InventoryScreen({ combat, userLevel, onGoldEarned, user }) {
   const [comparing, setComparing] = useState(null);
   const [sellFlash, setSellFlash] = useState('');
 
@@ -1080,6 +1085,7 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
         onSell={handleSellEquipped}
         overSlot={overSlot}
         draggingItem={dragging?.item || null}
+        user={user}
       />
 
       {/* Bag items */}
@@ -1223,8 +1229,8 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
 
         .bag-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-          gap: var(--space-3);
+          grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+          gap: var(--space-2);
         }
 
         .bag-tile {
@@ -1248,7 +1254,7 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
 
         .bt-thumb {
           width: 100%;
-          aspect-ratio: 1 / 1;
+          aspect-ratio: 4 / 3;
           overflow: hidden;
           display: flex;
           align-items: center;

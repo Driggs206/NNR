@@ -2,7 +2,8 @@
 // COMBAT ENGINE — Passive DPS, task bursts, buffs, offline gains
 // ============================================================
 
-import { getEquipmentStats } from '../data/items';
+import { getEquipmentStats, ITEMS } from '../data/items';
+import { LOOT_CONFIG, rollRarity, rollLootCount } from '../data/monsters';
 
 // ─── BASE PLAYER STATS ────────────────────────────────────
 export const BASE_PLAYER_STATS = {
@@ -163,11 +164,27 @@ export function rollMonsterRewards(monster) {
   const xp   = monster.xp_drop;
 
   const loot = [];
+
+  // ── Specific loot table entries (guaranteed/chance items) ──
   (monster.loot_table || []).forEach(entry => {
     if (Math.random() < entry.chance) {
       loot.push(entry.item);
     }
   });
+
+  // ── Tiered random loot rolls ───────────────────────────────
+  const tierKey = monster.loot_tier;
+  if (tierKey && LOOT_CONFIG && rollRarity && rollLootCount) {
+    const rollCount = rollLootCount(tierKey);
+    for (let i = 0; i < rollCount; i++) {
+      const rarity  = rollRarity(tierKey);
+      const pool    = Object.values(ITEMS).filter(item => item.rarity === rarity);
+      if (pool.length > 0) {
+        const picked = pool[Math.floor(Math.random() * pool.length)];
+        loot.push(picked.id);
+      }
+    }
+  }
 
   return { gold, xp, loot };
 }

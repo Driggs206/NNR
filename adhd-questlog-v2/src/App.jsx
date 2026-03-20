@@ -232,6 +232,7 @@ export default function App() {
           monstersKilled={combat.monstersKilled}
           onToggleLowEnergy={combat.toggleLowEnergy}
           combatLog={log}
+          user={user}
         />
 
         <main className="main-content">
@@ -265,6 +266,7 @@ export default function App() {
             <InventoryScreen
               combat={combat} userLevel={user.level}
               onGoldEarned={(amount) => applyGoldReward(amount)}
+              user={user}
             />
           )}
           {view === 'shop' && (

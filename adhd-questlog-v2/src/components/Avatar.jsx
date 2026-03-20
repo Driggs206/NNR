@@ -7,8 +7,9 @@ import React from 'react';
 import { getAvatar } from '../data/avatars';
 
 export default function Avatar({ avatarId, displayName = '?', size = 40, onClick, className = '' }) {
+  const avatar  = getAvatar(avatarId);
   const baseUrl = import.meta.env.BASE_URL || '/';
-  const artSrc = avatar?.art ? `${baseUrl}${avatar.art.replace(/^\//, '')}` : null;
+  const artSrc  = avatar?.art ? `${baseUrl}${avatar.art.replace(/^\//, '')}` : null;
   const initial = displayName?.[0]?.toUpperCase() || '?';
 
   return (

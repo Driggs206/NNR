@@ -23,7 +23,7 @@ export const BOOTS_ITEMS = {
     flavor: "You didn't choose them. They chose you. It's a relationship.",
   },
   boots_speed_1: {
-    id: 'boots_speed_1', name: 'Restless Boots', slot: 'boots', artIcon: '/art/items/restless_boots_icon.png', rarity: 'common', icon: '👟', color: '#66BB6A',
+    id: 'boots_speed_1', name: 'Restless Shoes', slot: 'boots', artIcon: '/art/items/restless_shoes_icon.png', rarity: 'common', icon: '👟', color: '#66BB6A',
     stats: { speed: 0.20 },
     flavor: 'They tap. Constantly.',
   },

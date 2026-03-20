@@ -3,6 +3,8 @@ name: Deploy Dopamine Quest to GitHub Pages
 on:
   push:
     branches: [main]
+    paths:
+      - 'adhd-questlog-v2/**'
   workflow_dispatch:
 
 permissions:
@@ -43,13 +45,32 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-content
+        continue-on-error: true
+
+      - name: Prepare deploy folder
+        run: |
+          mkdir -p deploy-output
+          # Copy existing gh-pages content if it exists (preserves NNR root)
+          if [ -d "gh-pages-content" ] && [ "$(ls -A gh-pages-content 2>/dev/null)" ]; then
+            cp -r gh-pages-content/. deploy-output/ 2>/dev/null || true
+            rm -rf deploy-output/.git
+          fi
+          # Copy Dopamine Quest build into subfolder
+          mkdir -p deploy-output/dopamine-quest
+          cp -r adhd-questlog-v2/dist/. deploy-output/dopamine-quest/
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: adhd-questlog-v2/dist
+          path: deploy-output
 
       - name: Deploy to GitHub Pages
         id: deployment

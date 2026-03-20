@@ -3,8 +3,6 @@ name: Deploy Dopamine Quest to GitHub Pages
 on:
   push:
     branches: [main]
-    paths:
-      - 'adhd-questlog-v2/**'
   workflow_dispatch:
 
 permissions:
@@ -38,29 +36,21 @@ jobs:
         working-directory: adhd-questlog-v2
         run: npm ci
 
-      - name: Build
+      - name: Build Dopamine Quest
         working-directory: adhd-questlog-v2
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-      - name: Checkout gh-pages branch
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: gh-pages-content
-        continue-on-error: true
-
       - name: Prepare deploy folder
         run: |
           mkdir -p deploy-output
-          # Copy existing gh-pages content if it exists (preserves NNR root)
-          if [ -d "gh-pages-content" ] && [ "$(ls -A gh-pages-content 2>/dev/null)" ]; then
-            cp -r gh-pages-content/. deploy-output/ 2>/dev/null || true
-            rm -rf deploy-output/.git
-          fi
-          # Copy Dopamine Quest build into subfolder
+
+          # Copy NNR v3 — preserves driggs206.github.io/NNR/v3/
+          cp -r v3 deploy-output/v3
+
+          # Copy Dopamine Quest — lives at driggs206.github.io/NNR/dopamine-quest/
           mkdir -p deploy-output/dopamine-quest
           cp -r adhd-questlog-v2/dist/. deploy-output/dopamine-quest/
 

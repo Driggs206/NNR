@@ -6,6 +6,12 @@
 import React, { useState } from 'react';
 import { AVATARS, getUnlockedAvatars, getAvatarGroups } from '../data/avatars';
 
+function artUrl(art) {
+  if (!art) return null;
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base}${art.replace(/^\//, '')}`;
+}
+
 function AvatarTile({ avatar, selected, unlocked, onSelect }) {
   return (
     <div
@@ -16,7 +22,7 @@ function AvatarTile({ avatar, selected, unlocked, onSelect }) {
       {/* Art or emoji */}
       <div className="av-tile-icon">
         {avatar.art
-          ? <img src={avatar.art} alt={avatar.name} className="av-tile-img" />
+          ? <img src={artUrl(avatar.art)} alt={avatar.name} className="av-tile-img" />
           : <span className="av-tile-emoji">{avatar.icon}</span>
         }
         {!unlocked && <div className="av-tile-lock">🔒</div>}
@@ -76,7 +82,7 @@ export default function AvatarPicker({ currentAvatar, earnedBadgeIds = [], onSel
                 <>
                   <div className="avp-preview-icon">
                     {av.art
-                      ? <img src={av.art} alt={av.name} />
+                      ? <img src={artUrl(av.art)} alt={av.name} />
                       : <span>{av.icon}</span>
                     }
                   </div>

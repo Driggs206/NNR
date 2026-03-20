@@ -7,7 +7,8 @@ import React from 'react';
 import { getAvatar } from '../data/avatars';
 
 export default function Avatar({ avatarId, displayName = '?', size = 40, onClick, className = '' }) {
-  const avatar = getAvatar(avatarId);
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const artSrc = avatar?.art ? `${baseUrl}${avatar.art.replace(/^\//, '')}` : null;
   const initial = displayName?.[0]?.toUpperCase() || '?';
 
   return (
@@ -17,9 +18,9 @@ export default function Avatar({ avatarId, displayName = '?', size = 40, onClick
       onClick={onClick}
       title={avatar?.name || displayName}
     >
-      {avatar?.art ? (
+      {artSrc ? (
         <img
-          src={avatar.art}
+          src={artSrc}
           alt={avatar.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
         />

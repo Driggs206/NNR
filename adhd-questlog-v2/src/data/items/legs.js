@@ -35,7 +35,7 @@ export const LEGS_ITEMS = {
     flavor: 'Technically pajamas. No one needs to know.',
   },
   legs_storm_1: {
-    id: 'legs_storm_1', name: 'Greaves of the Storm', slot: 'legs', artIcon: '/art/items/greaves_of_the_storm_icon.png', rarity: 'uncommon', icon: '⚡', color: '#FFD54F',
+    id: 'legs_storm_1', name: 'Pantaloons of the Storm', slot: 'legs', artIcon: '/art/items/pantaloons_of_the_storm_icon.png', rarity: 'uncommon', icon: '⚡', color: '#FFD54F',
     stats: { speed: 0.20, attack: 8 },
     set: 'storm_runner',
     flavor: 'Lightning-fast. Like your best ideas. Like your worst.',

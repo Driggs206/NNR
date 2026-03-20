@@ -3,23 +3,28 @@
 // ============================================================
 
 import React from 'react';
+import Avatar from './Avatar';
 
 const NAV_ITEMS = [
   { id: 'dashboard',  icon: '⚔️',  label: 'Quests' },
   { id: 'focus',      icon: '🔮',  label: 'Focus' },
+  { id: 'social',     icon: '👥',  label: 'Social' },
+  { id: 'mpquests',   icon: '🌟',  label: 'Co-op' },
   { id: 'inventory',  icon: '🎒',  label: 'Gear' },
   { id: 'shop',       icon: '🛒',  label: 'Shop' },
   { id: 'rewards',    icon: '✨',  label: 'Rewards' },
   { id: 'talents',    icon: '🌟',  label: 'Talents' },
+  { id: 'settings',   icon: '⚙️',  label: 'Settings' },
 ];
 
-export default function Navigation({ user, activeView, onNavigate, pendingCount, newLoot = false }) {
+export default function Navigation({ user, activeView, onNavigate, pendingCount, newLoot = false, onSignOut, syncStatus, friendRequests = 0, wallBadge = 0 }) {
   const xpPercent = Math.round((user.xp / user.xpToNext) * 100);
 
   const badge = (item) => {
     if (item.id === 'dashboard' && pendingCount > 0) return pendingCount;
     if (item.id === 'talents' && user.talentPoints > 0) return '!';
     if (item.id === 'inventory' && newLoot) return '●';
+    if (item.id === 'social' && (friendRequests > 0 || wallBadge > 0)) return friendRequests + wallBadge;
     return null;
   };
 
@@ -30,13 +35,17 @@ export default function Navigation({ user, activeView, onNavigate, pendingCount,
         <div className="sidebar-logo">
           <div className="logo-icon">⚔</div>
           <div>
-            <div className="logo-title">QuestLog</div>
+            <div className="logo-title">Dopamine Quest</div>
             <div className="logo-sub">ADHD Task Manager</div>
           </div>
         </div>
 
         <div className="sidebar-profile">
-          <div className="profile-avatar">{user.displayName[0]}</div>
+          <Avatar
+            avatarId={user.avatarId}
+            displayName={user.displayName}
+            size={42}
+          />
           <div className="profile-info">
             <div className="profile-name">{user.displayName}</div>
             <div className="profile-title">{user.title}</div>
@@ -87,6 +96,22 @@ export default function Navigation({ user, activeView, onNavigate, pendingCount,
               </button>
             );
           })}
+
+          {/* Sync status + sign out */}
+          <div className="sidebar-footer">
+            {syncStatus && syncStatus !== 'idle' && (
+              <div className={`sync-status ${syncStatus}`}>
+                {syncStatus === 'syncing' && '⟳ Syncing...'}
+                {syncStatus === 'synced'  && '✓ Saved'}
+                {syncStatus === 'error'   && '⚠ Sync error'}
+              </div>
+            )}
+            {onSignOut && (
+              <button className="signout-btn" onClick={onSignOut}>
+                ↩ Sign out
+              </button>
+            )}
+          </div>
         </div>
       </nav>
 
@@ -195,6 +220,47 @@ export default function Navigation({ user, activeView, onNavigate, pendingCount,
         }
         .talent-badge { background: var(--purple); }
         .loot-badge   { background: var(--gold); color: var(--text-inverse); }
+
+        .sidebar-footer {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-top: auto;
+          padding-top: var(--space-3);
+          border-top: 1px solid var(--border-subtle);
+        }
+
+        .sync-status {
+          font-size: 0.65rem;
+          font-weight: 700;
+          text-align: center;
+          padding: 3px 8px;
+          border-radius: var(--radius-full);
+          letter-spacing: 0.04em;
+        }
+        .sync-status.syncing { color: var(--amber);    background: var(--amber-dim); }
+        .sync-status.synced  { color: var(--green);    background: var(--green-dim); }
+        .sync-status.error   { color: var(--coral);    background: var(--coral-dim); }
+
+        .signout-btn {
+          font-size: 0.72rem;
+          font-weight: 700;
+          font-family: var(--font-body);
+          background: transparent;
+          border: 1px solid var(--border-subtle);
+          color: var(--text-muted);
+          border-radius: var(--radius-md);
+          padding: var(--space-2) var(--space-3);
+          cursor: pointer;
+          transition: all 0.15s;
+          width: 100%;
+          text-align: left;
+        }
+        .signout-btn:hover {
+          background: var(--coral-dim);
+          color: var(--coral);
+          border-color: rgba(255,101,132,0.3);
+        }
 
         /* ── Mobile bottom nav ── */
         .bottom-nav {

@@ -1,46 +1,30 @@
-# ⚔️ QuestLog — ADHD Gamified Task Manager
+# 🧠⚡ Dopamine Quest — ADHD Task RPG
 
-**Node.js requirement: 18, 20, or 22.x (any patch). Works with Node 22.11.0.**
-**Built with Vite 4 for maximum compatibility.**
+Turn your tasks into quests. Defeat monsters with focus. Level up your life.
 
-## Quick start
-
-```bash
-npm install
-npm run dev        # → http://localhost:5173
-npm run build      # production build → /dist
-npm run preview    # preview production build
-```
-
-## Project structure
-
-```
-src/
-├── store/initialState.js      # Data models, sample tasks, talents catalog
-├── utils/rewards.js           # XP/gold math, level-up, task sorting
-├── hooks/useGameState.js      # useGameState + useFocusTimer hooks
-├── styles/globals.css         # CSS design system & animations
-├── components/
-│   ├── Navigation.jsx         # Sidebar: XP bar, stats, nav
-│   ├── TaskCard.jsx           # Task row with subtasks & completion
-│   ├── AddTaskModal.jsx       # Quick-add form (progressive disclosure)
-│   └── RewardEffects.jsx      # Floating XP/gold + level-up banner
-├── views/
-│   ├── Dashboard.jsx          # Quest board: next action + task list
-│   ├── FocusMode.jsx          # Full-screen Pomodoro timer
-│   ├── RewardsScreen.jsx      # Badges, stats, history
-│   └── TalentsScreen.jsx      # Unlock productivity perks
-└── App.jsx                    # Root: view router + state wiring
-```
+Dopamine Quest is a gamified task manager built specifically for ADHD brains — combining idle RPG combat, streaks, gear progression, and social accountability into a productivity app that actually feels rewarding to use.
 
 ## Features
 
-- Task CRUD with priorities, effort estimates, subtasks, tags, due dates
-- "Next Best Action" spotlight — one clear starting point
-- Overdue recovery prompts (no shame, just encouragement)
-- XP + Gold on every completion (priority × effort multipliers)
-- Level-up system with talent points
-- 5 unlockable talents: Deep Focus, Quick Start, Second Wind, Subtask Master, Streak Shield
-- Full-screen Pomodoro focus timer (5/15/25/45/60 min)
-- Rewards screen with badges and completion history
-- LocalStorage persistence across sessions
+- ⚔️ **Idle Combat** — complete tasks to deal damage to monsters
+- 🔮 **Focus Mode** — Pomodoro timer that writes to a live session for friends to boost
+- 🎒 **Equipment System** — 105 items across 7 slots, 5 rarities, 4 set bonuses
+- 👥 **Social** — friends, focus boosts, wall posts, multiplayer quests
+- 🏆 **Badges & Avatars** — 23 unlockable avatars tied to achievements
+- 🌟 **Talent Tree** — spend points on passive upgrades
+
+## Stack
+
+- React + Vite
+- Supabase (Postgres + Auth + Realtime)
+
+## Setup
+
+1. Copy `.env.example` to `.env` and add your Supabase keys
+2. Run `schema.sql` in Supabase SQL Editor
+3. Run `migration_wall.sql`, `migration_search_fix.sql`, `migration_avatars.sql` in order
+4. `npm install && npm run dev`
+
+## Credits
+
+Named by someone without ADHD. Diagnosed twice by someone who initially rejected the name.

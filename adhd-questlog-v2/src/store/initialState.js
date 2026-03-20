@@ -134,6 +134,7 @@ export const SAMPLE_TASKS = [
 export const INITIAL_USER = {
   id: 'user-1',
   displayName: 'Adventurer',
+  avatarId: 'the_planner',
   level: 3,
   xp: 340,
   xpToNext: 500,

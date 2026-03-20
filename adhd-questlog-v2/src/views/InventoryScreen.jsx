@@ -549,6 +549,276 @@ function CompareDrawer({ item, inventoryIndex, equipped, onEquip, onSell, onClos
   );
 }
 
+// ─── Paper Doll ───────────────────────────────────────────
+function PaperDollSlot({ slotMeta, itemId, onUnequip, onSell }) {
+  const [hover, setHover] = useState(false);
+  const item   = itemId ? ITEMS[itemId] : null;
+  const rarity = item ? (RARITY_COLORS[item.rarity] || RARITY_COLORS.common) : null;
+
+  return (
+    <div
+      className={`pd-slot ${item ? 'filled' : 'empty'}`}
+      style={item ? { '--rc': rarity.color, borderColor: rarity.color + '70', background: rarity.bg } : {}}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      title={item ? item.name : `${slotMeta.label} — empty`}
+    >
+      <div className="pd-slot-label">{slotMeta.label}</div>
+      <span className="pd-slot-icon">{item ? item.icon : slotMeta.icon}</span>
+      {item && (
+        <div className="pd-slot-name" style={{ color: rarity.color }}>
+          {item.name}
+        </div>
+      )}
+      {item && hover && (
+        <div className="pd-slot-actions">
+          <button className="pd-action-btn unequip" onClick={e => { e.stopPropagation(); onUnequip(); }} title="Unequip">↩</button>
+          <button className="pd-action-btn sell"    onClick={e => { e.stopPropagation(); onSell();    }} title={`Sell for ${getSellPrice(item)}g`}>💰</button>
+        </div>
+      )}
+      {!item && (
+        <div className="pd-empty-label">Empty</div>
+      )}
+    </div>
+  );
+}
+
+function PaperDoll({ equipped, onUnequip, onSell, playerStats }) {
+  const dps = calcDisplayDPS(playerStats);
+
+  // Layout: left column, character center, right column
+  const leftSlots  = ['head', 'body', 'gloves', 'legs'];
+  const rightSlots = ['boots', 'ring', 'ring2', 'necklace'];
+  const slotMeta = Object.fromEntries(EQUIPMENT_SLOTS.map(s => [s.id, s]));
+
+  return (
+    <div className="paper-doll">
+      {/* Left column */}
+      <div className="pd-column pd-left">
+        {leftSlots.map(slotId => (
+          <PaperDollSlot
+            key={slotId}
+            slotMeta={slotMeta[slotId]}
+            itemId={equipped[slotId]}
+            onUnequip={() => onUnequip(slotId)}
+            onSell={() => onSell(slotId)}
+          />
+        ))}
+      </div>
+
+      {/* Character silhouette */}
+      <div className="pd-character">
+        <div className="pd-char-figure">
+          <div className="pd-char-glow" />
+          <span className="pd-char-sprite">🧙‍♂️</span>
+        </div>
+        <div className="pd-char-stats">
+          <div className="pd-char-dps">⚔ {dps} DPS</div>
+          <div className="pd-char-slots">
+            {Object.values(equipped).filter(Boolean).length}/8
+          </div>
+        </div>
+      </div>
+
+      {/* Right column */}
+      <div className="pd-column pd-right">
+        {rightSlots.map(slotId => (
+          <PaperDollSlot
+            key={slotId}
+            slotMeta={slotMeta[slotId]}
+            itemId={equipped[slotId]}
+            onUnequip={() => onUnequip(slotId)}
+            onSell={() => onSell(slotId)}
+          />
+        ))}
+      </div>
+
+      <style>{`
+        .paper-doll {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: var(--space-3);
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-xl);
+          padding: var(--space-4);
+          align-items: center;
+        }
+
+        .pd-column {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-2);
+        }
+
+        /* Slot tile */
+        .pd-slot {
+          position: relative;
+          background: var(--bg-elevated);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-md);
+          padding: var(--space-2) var(--space-2) var(--space-1);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          min-height: 72px;
+          transition: all 0.15s var(--ease-out);
+          cursor: default;
+        }
+
+        .pd-slot.filled {
+          cursor: pointer;
+          box-shadow: 0 0 8px rgba(0,0,0,0.3);
+        }
+
+        .pd-slot.filled:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .pd-slot.empty {
+          opacity: 0.45;
+          border-style: dashed;
+        }
+
+        .pd-slot-label {
+          font-size: 0.55rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--text-muted);
+          line-height: 1;
+        }
+
+        .pd-slot-icon {
+          font-size: 1.4rem;
+          line-height: 1;
+          filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+        }
+
+        .pd-slot-name {
+          font-size: 0.58rem;
+          font-weight: 700;
+          text-align: center;
+          line-height: 1.2;
+          max-width: 80px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .pd-empty-label {
+          font-size: 0.55rem;
+          color: var(--text-muted);
+          font-style: italic;
+        }
+
+        /* Hover actions */
+        .pd-slot-actions {
+          position: absolute;
+          inset: 0;
+          background: rgba(13,12,29,0.85);
+          border-radius: var(--radius-md);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-2);
+          animation: fadeIn 0.1s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .pd-action-btn {
+          font-size: 0.85rem;
+          padding: 5px 9px;
+          border-radius: var(--radius-md);
+          border: 1px solid var(--border-default);
+          background: var(--bg-elevated);
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: var(--font-body);
+          color: var(--text-secondary);
+        }
+        .pd-action-btn:hover { transform: scale(1.1); }
+        .pd-action-btn.unequip:hover { background: var(--bg-card); color: var(--text-primary); }
+        .pd-action-btn.sell:hover    { background: var(--gold-dim); border-color: var(--gold-glow); }
+
+        /* Character center */
+        .pd-character {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-3);
+          padding: 0 var(--space-2);
+        }
+
+        .pd-char-figure {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .pd-char-glow {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: radial-gradient(ellipse, rgba(179,157,219,0.2) 0%, transparent 70%);
+          animation: pulse-gold 3s infinite;
+        }
+
+        .pd-char-sprite {
+          font-size: 3rem;
+          filter: drop-shadow(0 0 12px rgba(179,157,219,0.4));
+          position: relative;
+          z-index: 1;
+        }
+
+        .pd-char-stats {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 3px;
+        }
+
+        .pd-char-dps {
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: var(--coral);
+          background: var(--coral-dim);
+          border: 1px solid rgba(255,101,132,0.3);
+          border-radius: var(--radius-full);
+          padding: 2px 10px;
+          white-space: nowrap;
+          font-family: var(--font-display);
+        }
+
+        .pd-char-slots {
+          font-size: 0.65rem;
+          color: var(--text-muted);
+          font-weight: 700;
+        }
+
+        @media (max-width: 480px) {
+          .paper-doll {
+            grid-template-columns: 1fr auto 1fr;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-2);
+          }
+          .pd-slot { min-height: 60px; }
+          .pd-slot-icon { font-size: 1.1rem; }
+          .pd-char-sprite { font-size: 2.2rem; }
+          .pd-char-figure { width: 60px; height: 60px; }
+          .pd-slot-name { display: none; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // ─── Main screen ──────────────────────────────────────────
 export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
   const [comparing, setComparing] = useState(null);
@@ -621,20 +891,13 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
         <div className="sell-flash animate-in">💰 {sellFlash}</div>
       )}
 
-      {/* Total gear bonus summary */}
-      {Object.values(gearBonuses).some(v => v !== 0) && (
-        <div className="gear-summary">
-          {Object.entries(gearBonuses).map(([stat, val]) =>
-            val !== 0 ? (
-              <div key={stat} className="gear-stat-chip">
-                <span className="gs-icon">{STAT_LABELS[stat]?.icon}</span>
-                <span className="gs-name">{STAT_LABELS[stat]?.label || stat}</span>
-                <span className="gs-val">{fmtStat(stat, val)}</span>
-              </div>
-            ) : null
-          )}
-        </div>
-      )}
+      {/* Paper doll — visual equipment layout */}
+      <PaperDoll
+        equipped={equipped}
+        playerStats={playerStats}
+        onUnequip={handleUnequip}
+        onSell={handleSellEquipped}
+      />
 
       {/* Bag items */}
       <div className="inv-bag animate-in">

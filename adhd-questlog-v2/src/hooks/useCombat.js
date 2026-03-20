@@ -5,17 +5,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MONSTERS, getNextMonster, getMonsterById } from '../data/monsters';
 import {
-  getPlayerStats,
-  rollAttack,
-  applyArmor,
-  checkPhaseTransition,
-  calculateOfflineGains,
-  rollMonsterRewards,
-  getFocusSessionMultiplier,
-  getMomentumMultiplier,
-  TICK_MS,
+  getPlayerStats, rollAttack, applyArmor,
+  checkPhaseTransition, calculateOfflineGains,
+  rollMonsterRewards, getFocusSessionMultiplier,
+  getMomentumMultiplier, TICK_MS,
 } from '../engine/combatEngine';
 import { uid } from '../utils/rewards';
+import { fetchCombatState, upsertCombatState } from '../lib/db';
 
 const DEFAULT_EQUIPPED = {
   head: null, body: null, gloves: null,
@@ -37,10 +33,10 @@ const INITIAL_COMBAT_STATE = {
   lowEnergyMode: false,
 };
 
-export function useCombat({ user, focusSessionActive = false, onGoldEarned, onXpEarned, onLootDrop, onKillToast, onOfflineToast }) {
+export function useCombat({ user, userId = null, focusSessionActive = false, onGoldEarned, onXpEarned, onLootDrop, onKillToast, onOfflineToast }) {
   const [state, setState] = useState(() => {
     try {
-      const saved = localStorage.getItem('ql_combat');
+      const saved = localStorage.getItem('dq_combat');
       if (saved) {
         const parsed = JSON.parse(saved);
         return { ...INITIAL_COMBAT_STATE, ...parsed, activeBuffs: [], phaseEffects: [] };
@@ -50,16 +46,34 @@ export function useCombat({ user, focusSessionActive = false, onGoldEarned, onXp
   });
 
   const [floatingNumbers, setFloatingNumbers] = useState([]);
-  const tickRef = useRef(null);
-  const stateRef = useRef(state);
+  const tickRef   = useRef(null);
+  const stateRef  = useRef(state);
+  const syncTimer = useRef(null);
   stateRef.current = state;
 
-  // ── Persist on change ─────────────────────────────────────
+  // ── Load combat state from Supabase on login ────────────
+  useEffect(() => {
+    if (!userId) return;
+    fetchCombatState(userId).then(remote => {
+      if (remote) {
+        setState(prev => ({ ...prev, ...remote, activeBuffs: [], phaseEffects: [] }));
+      }
+    });
+  }, [userId]);
+
+  // ── Persist to localStorage + debounced Supabase sync ──
   useEffect(() => {
     const { activeBuffs, phaseEffects, ...toSave } = state;
     toSave.lastActiveMs = Date.now();
-    localStorage.setItem('ql_combat', JSON.stringify(toSave));
-  }, [state]);
+    localStorage.setItem('dq_combat', JSON.stringify(toSave));
+
+    if (userId) {
+      clearTimeout(syncTimer.current);
+      syncTimer.current = setTimeout(() => {
+        upsertCombatState(userId, toSave);
+      }, 3000);
+    }
+  }, [state, userId]);
 
   // ── Derive monster and player stats ───────────────────────
   const monster = getMonsterById(state.currentMonsterId);
@@ -70,7 +84,7 @@ export function useCombat({ user, focusSessionActive = false, onGoldEarned, onXp
 
   // ── Offline gains on mount ─────────────────────────────────
   useEffect(() => {
-    const saved = localStorage.getItem('ql_combat');
+    const saved = localStorage.getItem('dq_combat');
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved);

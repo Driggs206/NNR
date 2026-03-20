@@ -3,7 +3,9 @@ name: Deploy Dopamine Quest to GitHub Pages
 on:
   push:
     branches: [main]
-  workflow_dispatch: # allows manual trigger from GitHub UI
+    paths:
+      - 'adhd-questlog-v2/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,11 +32,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: adhd-questlog-v2/package-lock.json
 
       - name: Install dependencies
+        working-directory: adhd-questlog-v2
         run: npm ci
 
       - name: Build
+        working-directory: adhd-questlog-v2
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
@@ -46,7 +51,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: adhd-questlog-v2/dist
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -5,9 +5,43 @@
 // • Mobile-first: comparison drawer slides up from bottom
 // ============================================================
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { EQUIPMENT_SLOTS, ITEMS, RARITY_COLORS, getEquipmentStats, getSellPrice } from '../data/items';
 import { calcDisplayDPS, getPlayerStats } from '../engine/combatEngine';
+import { useDragDrop } from '../hooks/useDragDrop';
+
+// ─── Drag ghost — follows cursor/finger ──────────────────
+function DragGhost({ item, pos }) {
+  if (!item) return null;
+  const rarity = RARITY_COLORS[item.rarity] || RARITY_COLORS.common;
+  return (
+    <div style={{
+      position: 'fixed',
+      left: pos.x,
+      top:  pos.y,
+      transform: 'translate(-50%, -50%)',
+      pointerEvents: 'none',
+      zIndex: 9999,
+      background: rarity.bg,
+      border: `2px solid ${rarity.color}`,
+      borderRadius: '12px',
+      padding: '8px 12px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      boxShadow: `0 0 20px ${rarity.color}60, 0 4px 16px rgba(0,0,0,0.6)`,
+      opacity: 0.92,
+      backdropFilter: 'blur(4px)',
+      minWidth: '120px',
+    }}>
+      <span style={{ fontSize: '1.4rem' }}>{item.icon}</span>
+      <div>
+        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: rarity.color }}>{item.name}</div>
+        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', textTransform: 'capitalize' }}>{item.slot}</div>
+      </div>
+    </div>
+  );
+}
 
 // ─── Stat formatter ───────────────────────────────────────
 function fmtStat(stat, val) {
@@ -58,26 +92,72 @@ function StatDiffRow({ stat, oldVal = 0, newVal = 0 }) {
   );
 }
 
+// ─── Item art helpers ─────────────────────────────────────
+function itemArtSrc(item) {
+  if (!item?.art) return null;
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base}${item.art.replace(/^\//, '')}`;
+}
+
+// Small square icon for bag tiles and paper doll
+function itemIconSrc(item) {
+  if (!item) return null;
+  // Use dedicated icon art if available, fall back to full card art
+  const path = item.artIcon || item.art;
+  if (!path) return null;
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base}${path.replace(/^\//, '')}`;
+}
+
+// ─── Item card display — shows art if available ───────────
+function ItemCardArt({ item, className = '', style = {} }) {
+  const rarity  = RARITY_COLORS[item.rarity] || RARITY_COLORS.common;
+  const artSrc  = itemArtSrc(item);
+  return (
+    <div className={`item-card-art ${className}`} style={style}>
+      {artSrc ? (
+        <img
+          src={artSrc}
+          alt={item.name}
+          className="ica-img"
+          draggable={false}
+        />
+      ) : (
+        <div className="ica-fallback" style={{ background: rarity.bg }}>
+          <span className="ica-emoji">{item.icon}</span>
+          <div className="ica-rarity-dot" style={{ background: rarity.color }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Compact item tile for the bag grid ───────────────────
-function BagTile({ item, inventoryIndex, onSelect, onSell }) {
-  const rarity = RARITY_COLORS[item.rarity] || RARITY_COLORS.common;
-  const sellPrice = getSellPrice(item);
+function BagTile({ item, inventoryIndex, onSelect, onSell, onMouseDragStart, onTouchDragStart, isDragging }) {
+  const rarity  = RARITY_COLORS[item.rarity] || RARITY_COLORS.common;
+  const iconSrc = itemIconSrc(item);
 
   return (
     <div
-      className="bag-tile"
-      style={{ '--rc': rarity.color, borderColor: rarity.color + '55' }}
-      onClick={() => onSelect(item, inventoryIndex)}
+      className={`bag-tile ${isDragging ? 'dragging' : ''}`}
+      style={{ '--rc': rarity.color, borderColor: rarity.color + '66', opacity: isDragging ? 0.4 : 1 }}
+      onClick={() => !isDragging && onSelect(item, inventoryIndex)}
+      onMouseDown={e => { if (e.button === 0) onMouseDragStart(item, inventoryIndex, e); }}
+      onTouchStart={e => onTouchDragStart(item, inventoryIndex, e)}
     >
-      <div className="bt-icon-wrap" style={{ background: rarity.bg }}>
-        <span className="bt-icon">{item.icon}</span>
+      {/* Illustration area — art crop or emoji fallback, always same size */}
+      <div className="bt-thumb" style={{ background: iconSrc ? 'transparent' : rarity.bg }}>
+        {iconSrc ? (
+          <img src={iconSrc} alt={item.name} className="bt-thumb-img" draggable={false} />
+        ) : (
+          <span className="bt-thumb-emoji">{item.icon}</span>
+        )}
+      </div>
+      {/* Item name + rarity dot */}
+      <div className="bt-footer">
         <span className="bt-rarity-dot" style={{ background: rarity.color }} />
+        <span className="bt-name" style={{ color: rarity.color }}>{item.name}</span>
       </div>
-      <div className="bt-info">
-        <div className="bt-name" style={{ color: rarity.color }}>{item.name}</div>
-        <div className="bt-slot">{item.slot}</div>
-      </div>
-      <div className="bt-sell-preview">💰{sellPrice}g</div>
     </div>
   );
 }
@@ -166,6 +246,18 @@ function CompareDrawer({ item, inventoryIndex, equipped, onEquip, onSell, onClos
         <div className="drawer-handle" onClick={onClose} />
 
         <div className="cd-header">
+          {/* Full card art — uncropped */}
+          {itemArtSrc(item) && (
+            <div className="cd-card-art-wrap">
+              <img
+                src={itemArtSrc(item)}
+                alt={item.name}
+                className="cd-card-art"
+                draggable={false}
+              />
+            </div>
+          )}
+          <div className="cd-header-row">
           <div className="cd-new-item">
             <span className="cd-item-icon" style={{ background: rarity.bg }}>{item.icon}</span>
             <div>
@@ -183,6 +275,7 @@ function CompareDrawer({ item, inventoryIndex, equipped, onEquip, onSell, onClos
             </div>
           </div>
           <button className="drawer-close btn btn-ghost" onClick={onClose}>✕</button>
+          </div>
         </div>
 
         {/* Stat comparison table */}
@@ -322,10 +415,32 @@ function CompareDrawer({ item, inventoryIndex, equipped, onEquip, onSell, onClos
 
           .cd-header {
             display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+          }
+
+          .cd-card-art-wrap {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+          }
+
+          .cd-card-art {
+            width: 100%;
+            display: block;
+            object-fit: contain;
+            object-position: center top;
+            pointer-events: none;
+          }
+
+          .cd-header-row {
+            display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 16px;
           }
 
           .cd-new-item {
@@ -550,21 +665,40 @@ function CompareDrawer({ item, inventoryIndex, equipped, onEquip, onSell, onClos
 }
 
 // ─── Paper Doll ───────────────────────────────────────────
-function PaperDollSlot({ slotMeta, itemId, onUnequip, onSell }) {
+function PaperDollSlot({ slotMeta, itemId, onUnequip, onSell, isOver, isDragCompatible }) {
   const [hover, setHover] = useState(false);
   const item   = itemId ? ITEMS[itemId] : null;
   const rarity = item ? (RARITY_COLORS[item.rarity] || RARITY_COLORS.common) : null;
 
+  let slotStyle = item
+    ? { '--rc': rarity.color, borderColor: rarity.color + '70', background: rarity.bg }
+    : {};
+
+  if (isOver && isDragCompatible) {
+    slotStyle = { ...slotStyle, borderColor: 'var(--green)', boxShadow: '0 0 16px rgba(92,221,139,0.5)', background: 'rgba(92,221,139,0.1)' };
+  } else if (isOver && !isDragCompatible) {
+    slotStyle = { ...slotStyle, borderColor: 'var(--coral)', boxShadow: '0 0 16px rgba(255,101,132,0.4)' };
+  }
+
   return (
     <div
-      className={`pd-slot ${item ? 'filled' : 'empty'}`}
-      style={item ? { '--rc': rarity.color, borderColor: rarity.color + '70', background: rarity.bg } : {}}
+      className={`pd-slot ${item ? 'filled' : 'empty'} ${isOver && isDragCompatible ? 'drop-ready' : ''}`}
+      style={slotStyle}
+      data-drop-slot={slotMeta.id}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       title={item ? item.name : `${slotMeta.label} — empty`}
     >
       <div className="pd-slot-label">{slotMeta.label}</div>
-      <span className="pd-slot-icon">{item ? item.icon : slotMeta.icon}</span>
+      {item ? (
+        itemIconSrc(item) ? (
+          <img src={itemIconSrc(item)} alt={item.name} className="pd-slot-art" draggable={false} />
+        ) : (
+          <span className="pd-slot-icon">{item.icon}</span>
+        )
+      ) : (
+        <span className="pd-slot-icon">{slotMeta.icon}</span>
+      )}
       {item && (
         <div className="pd-slot-name" style={{ color: rarity.color }}>
           {item.name}
@@ -583,13 +717,19 @@ function PaperDollSlot({ slotMeta, itemId, onUnequip, onSell }) {
   );
 }
 
-function PaperDoll({ equipped, onUnequip, onSell, playerStats }) {
+function PaperDoll({ equipped, onUnequip, onSell, playerStats, overSlot, draggingItem }) {
   const dps = calcDisplayDPS(playerStats);
-
-  // Layout: left column, character center, right column
-  const leftSlots  = ['head', 'body', 'gloves', 'legs'];
-  const rightSlots = ['boots', 'ring', 'ring2', 'necklace'];
+  const leftSlots  = ['head', 'body', 'legs', 'boots'];
+  const rightSlots = ['gloves', 'ring', 'ring2', 'necklace'];
   const slotMeta = Object.fromEntries(EQUIPMENT_SLOTS.map(s => [s.id, s]));
+
+  function isCompatible(slotId) {
+    if (!draggingItem) return false;
+    const itemSlot = draggingItem.slot;
+    // rings can go in ring or ring2
+    if (itemSlot === 'ring') return slotId === 'ring' || slotId === 'ring2';
+    return itemSlot === slotId;
+  }
 
   return (
     <div className="paper-doll">
@@ -602,6 +742,8 @@ function PaperDoll({ equipped, onUnequip, onSell, playerStats }) {
             itemId={equipped[slotId]}
             onUnequip={() => onUnequip(slotId)}
             onSell={() => onSell(slotId)}
+            isOver={overSlot === slotId}
+            isDragCompatible={isCompatible(slotId)}
           />
         ))}
       </div>
@@ -629,6 +771,8 @@ function PaperDoll({ equipped, onUnequip, onSell, playerStats }) {
             itemId={equipped[slotId]}
             onUnequip={() => onUnequip(slotId)}
             onSell={() => onSell(slotId)}
+            isOver={overSlot === slotId}
+            isDragCompatible={isCompatible(slotId)}
           />
         ))}
       </div>
@@ -662,9 +806,10 @@ function PaperDoll({ equipped, onUnequip, onSell, playerStats }) {
           flex-direction: column;
           align-items: center;
           gap: 2px;
-          min-height: 72px;
+          min-height: 90px;
           transition: all 0.15s var(--ease-out);
           cursor: default;
+          overflow: hidden;
         }
 
         .pd-slot.filled {
@@ -680,6 +825,26 @@ function PaperDoll({ equipped, onUnequip, onSell, playerStats }) {
         .pd-slot.empty {
           opacity: 0.45;
           border-style: dashed;
+        }
+
+        .pd-slot.drop-ready {
+          animation: pulseSlot 0.5s ease infinite alternate;
+        }
+
+        @keyframes pulseSlot {
+          from { transform: scale(1); }
+          to   { transform: scale(1.08); }
+        }
+
+        .bag-tile {
+          user-select: none;
+          cursor: grab;
+        }
+        .bag-tile:active { cursor: grabbing; }
+        .bag-tile.dragging {
+          opacity: 0.35;
+          transform: scale(0.92);
+          transition: all 0.1s;
         }
 
         .pd-slot-label {
@@ -830,6 +995,19 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
 
   const inventoryItems = inventory.map((id, idx) => ({ item: ITEMS[id], idx })).filter(e => e.item);
 
+  // ── Drag and drop ─────────────────────────────────────────
+  const handleDrop = useCallback(({ item, inventoryIndex }, targetSlot) => {
+    // Check compatibility
+    const compatible = item.slot === targetSlot ||
+      (item.slot === 'ring' && (targetSlot === 'ring' || targetSlot === 'ring2'));
+    if (!compatible) return;
+    equipItem(item.id, targetSlot);
+    // Close comparison drawer if it was open for this item
+    setComparing(null);
+  }, [equipItem]);
+
+  const { dragging, dragPos, overSlot, onMouseDragStart, onTouchDragStart } = useDragDrop({ onDrop: handleDrop });
+
   function handleSelectBagItem(item, inventoryIndex) {
     setComparing({ item, inventoryIndex });
   }
@@ -891,12 +1069,17 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
         <div className="sell-flash animate-in">💰 {sellFlash}</div>
       )}
 
+      {/* Drag ghost */}
+      {dragging && <DragGhost item={dragging.item} pos={dragPos} />}
+
       {/* Paper doll — visual equipment layout */}
       <PaperDoll
         equipped={equipped}
         playerStats={playerStats}
         onUnequip={handleUnequip}
         onSell={handleSellEquipped}
+        overSlot={overSlot}
+        draggingItem={dragging?.item || null}
       />
 
       {/* Bag items */}
@@ -909,7 +1092,7 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
           </div>
         ) : (
           <>
-            <div className="bag-hint">Tap any item to compare &amp; equip</div>
+            <div className="bag-hint">Tap to compare · Drag to equip</div>
             <div className="bag-grid">
               {inventoryItems.map(({ item, idx }) => (
                 <BagTile
@@ -918,6 +1101,9 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
                   inventoryIndex={idx}
                   onSelect={handleSelectBagItem}
                   onSell={(it) => handleSellFromDrawer(it, idx, getSellPrice(it))}
+                  onMouseDragStart={onMouseDragStart}
+                  onTouchDragStart={onTouchDragStart}
+                  isDragging={dragging?.inventoryIndex === idx && dragging?.item?.id === item.id}
                 />
               ))}
             </div>
@@ -1036,28 +1222,118 @@ export default function InventoryScreen({ combat, userLevel, onGoldEarned }) {
         }
 
         .bag-grid {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-2);
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: var(--space-3);
         }
 
         .bag-tile {
           display: flex;
-          align-items: center;
-          gap: var(--space-3);
+          flex-direction: column;
           background: var(--bg-card);
           border: 1px solid;
           border-radius: var(--radius-lg);
-          padding: var(--space-3) var(--space-4);
-          cursor: pointer;
+          overflow: hidden;
+          cursor: grab;
           transition: all 0.15s var(--ease-out);
-          min-height: 60px;
+          user-select: none;
         }
 
+        .bag-tile:active { cursor: grabbing; }
+
         .bag-tile:hover {
-          background: var(--bg-card-hover);
-          transform: translateX(3px);
-          box-shadow: var(--shadow-sm);
+          transform: translateY(-3px);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .bt-thumb {
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .bt-thumb-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 42%;
+          display: block;
+          pointer-events: none;
+          transition: transform 0.2s;
+        }
+
+        .bag-tile:hover .bt-thumb-img { transform: scale(1.06); }
+
+        .bt-thumb-emoji { font-size: 2.2rem; line-height: 1; }
+
+        .bt-footer {
+          padding: 4px 6px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: var(--bg-elevated);
+          min-height: 28px;
+        }
+
+        .bt-rarity-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .bt-name {
+          font-size: 0.62rem;
+          font-weight: 700;
+          line-height: 1.2;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+
+        /* ── Item card art ── */
+        .item-card-art {
+          width: 100%;
+          border-radius: var(--radius-md);
+          overflow: hidden;
+          position: relative;
+        }
+        .ica-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          border-radius: var(--radius-md);
+        }
+        .ica-fallback {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: var(--radius-md);
+          position: relative;
+        }
+        .ica-emoji { font-size: 1.6rem; }
+        .ica-rarity-dot {
+          position: absolute; bottom: 3px; right: 3px;
+          width: 7px; height: 7px; border-radius: 50%;
+          border: 1.5px solid rgba(0,0,0,0.4);
+        }
+
+
+
+        /* ── Paper doll slot art ── */
+        .pd-slot-art {
+          width: 56px;
+          height: 56px;
+          object-fit: contain;
+          border-radius: var(--radius-sm);
+          display: block;
+          pointer-events: none;
         }
 
         .bt-icon-wrap {

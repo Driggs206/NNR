@@ -326,15 +326,17 @@ select option {
 .app-layout {
   display: flex;
   min-height: 100vh;
-  min-height: 100dvh; /* dynamic viewport on mobile */
+  min-height: 100dvh;
+  position: relative;
+  z-index: 1;
 }
 
 .main-content {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  /* bottom padding so content clears mobile nav */
   padding-bottom: env(safe-area-inset-bottom, 0);
+  background: rgba(13, 12, 29, 0.7);
 }
 
 /* === MODAL === */

@@ -15,6 +15,7 @@ import Navigation       from './components/Navigation';
 import CombatStrip      from './components/CombatStrip';
 import DevPanel         from './components/DevPanel';
 import RewardEffects    from './components/RewardEffects';
+import CosmicBackground from './components/CosmicBackground';
 
 import Dashboard        from './views/Dashboard';
 import FocusMode        from './views/FocusMode';
@@ -206,6 +207,7 @@ export default function App() {
   // ── Main app ──────────────────────────────────────────────
   return (
     <div className="app-layout">
+      <CosmicBackground />
       <Navigation
         user={user}
         activeView={view}

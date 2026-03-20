@@ -292,16 +292,25 @@ export default function AuthScreen({ onSignIn, onSignUp, onReset, onUpdatePasswo
         }
 
         .auth-card {
-          background: rgba(16, 14, 35, 0.92);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(245,200,66,0.25);
-          border-radius: var(--radius-xl);
-          padding: var(--space-8);
+          background: rgba(8, 6, 22, 0.88);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 2px solid rgba(10, 8, 26, 0.6);
+          border-radius: 50% / 55%;
+          padding: var(--space-8) var(--space-6);
           width: 100%;
-          max-width: 420px;
+          max-width: 460px;
+          min-height: 520px;
           position: relative;
           z-index: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          box-shadow:
+            inset 0 0 60px rgba(0,0,0,0.8),
+            0 0 40px rgba(0,0,0,0.6),
+            inset 0 0 120px rgba(10,6,30,0.9);
           display: flex;
           flex-direction: column;
           gap: var(--space-5);
@@ -314,6 +323,7 @@ export default function AuthScreen({ onSignIn, onSignUp, onReset, onUpdatePasswo
         .auth-logo {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: var(--space-3);
         }
 
@@ -353,12 +363,16 @@ export default function AuthScreen({ onSignIn, onSignUp, onReset, onUpdatePasswo
           font-size: 1rem;
           color: var(--text-secondary);
           font-style: italic;
+          text-align: center;
         }
 
         .auth-form {
           display: flex;
           flex-direction: column;
           gap: var(--space-4);
+          width: 100%;
+          max-width: 300px;
+          margin: 0 auto;
         }
 
         .auth-field {

@@ -6,12 +6,18 @@ import React, { useState, useEffect } from 'react';
 import { ITEMS, RARITY_COLORS } from '../data/items';
 import { STATIC_SHOP, getDailyPool, msUntilRefresh, ROTATING_POOLS } from '../data/shop';
 
-const REFRESH_COST = 50; // gold to manually refresh the daily pool
+const REFRESH_COST = 50;
 
 function formatCountdown(ms) {
   const h = Math.floor(ms / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
   return `${h}h ${m}m`;
+}
+
+function itemArtSrc(item) {
+  if (!item?.art) return null;
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base}${item.art.replace(/^\//, '')}`;
 }
 
 function ShopItem({ itemId, price, currency, userGold, onBuy, owned }) {
@@ -36,7 +42,13 @@ function ShopItem({ itemId, price, currency, userGold, onBuy, owned }) {
     <div className={`shop-item ${bought ? 'bought' : ''} ${!canAfford ? 'cant-afford' : ''}`}
       style={{ '--rc': rarity.color, borderColor: bought ? 'var(--green)' : rarity.color }}>
       <div className="shop-item-top">
-        <span className="shop-item-icon">{item.icon}</span>
+        {itemArtSrc(item) ? (
+          <div className="shop-item-art-wrap">
+            <img src={itemArtSrc(item)} alt={item.name} className="shop-item-art" draggable={false} />
+          </div>
+        ) : (
+          <span className="shop-item-icon">{item.icon}</span>
+        )}
         <div className="shop-item-header">
           <div className="shop-item-name" style={{ color: rarity.color }}>{item.name}</div>
           <span className="rarity-badge" style={{ background: rarity.bg, color: rarity.color }}>
@@ -340,6 +352,20 @@ export default function ShopScreen({ userGold, onBuy, onRefreshSpend }) {
         }
 
         .shop-item-icon { font-size: 1.6rem; flex-shrink: 0; }
+
+        .shop-item-art-wrap {
+          width: 56px;
+          flex-shrink: 0;
+          border-radius: var(--radius-sm);
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+        .shop-item-art {
+          width: 100%;
+          display: block;
+          object-fit: cover;
+          pointer-events: none;
+        }
 
         .shop-item-header { flex: 1; }
         .shop-item-name { font-size: 0.9rem; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }

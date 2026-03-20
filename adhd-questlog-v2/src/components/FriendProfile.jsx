@@ -26,17 +26,28 @@ function timeAgo(ts) {
 }
 
 // ─── Gear slot tile ───────────────────────────────────────
+function itemArtSrc(item) {
+  if (!item?.art) return null;
+  const base = import.meta.env.BASE_URL || '/';
+  return `${base}${item.art.replace(/^\//, '')}`;
+}
+
 function GearSlot({ slotMeta, itemId }) {
   const item   = itemId ? ITEMS[itemId] : null;
   const rarity = item ? (RARITY_COLORS[item.rarity] || RARITY_COLORS.common) : null;
+  const artSrc = itemArtSrc(item);
   return (
     <div
       className={`fp-gear-slot ${item ? 'filled' : 'empty'}`}
-      style={item ? { borderColor: rarity.color + '55', background: rarity.bg } : {}}
+      style={item ? { borderColor: rarity.color + '55', background: artSrc ? 'transparent' : rarity.bg } : {}}
       title={item ? `${item.name} (${rarity?.label})` : `${slotMeta.label} — empty`}
     >
-      <span className="fp-gs-icon">{item ? item.icon : slotMeta.icon}</span>
-      {item && <div className="fp-gs-dot" style={{ background: rarity.color }} />}
+      {artSrc ? (
+        <img src={artSrc} alt={item.name} className="fp-gs-art" draggable={false} />
+      ) : (
+        <span className="fp-gs-icon">{item ? item.icon : slotMeta.icon}</span>
+      )}
+      {item && !artSrc && <div className="fp-gs-dot" style={{ background: rarity.color }} />}
     </div>
   );
 }
@@ -850,6 +861,14 @@ export default function FriendProfile({
         .fp-gear-slot.filled:hover { transform: scale(1.08); z-index: 1; }
 
         .fp-gs-icon { font-size: 1.4rem; }
+        .fp-gs-art {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: calc(var(--radius-md) - 2px);
+          display: block;
+          pointer-events: none;
+        }
         .fp-gs-dot  {
           position: absolute; bottom: 3px; right: 3px;
           width: 7px; height: 7px; border-radius: 50%;

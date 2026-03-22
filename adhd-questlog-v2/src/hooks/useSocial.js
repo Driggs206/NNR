@@ -59,7 +59,7 @@ export function useSocial({ userId, currentSession, onBoostReceived, onFriendSta
     // Poll active sessions every 10s for more responsive friend presence
     pollInterval.current = setInterval(async () => {
       const s = await fetchActiveFriendSessions(userId);
-      console.debug('[social] poll — active sessions:', s?.length, s?.map(x=>x.id));
+
       setActiveSessions(s || []);
       // Notify only for sessions we haven't seen before
       if (onFriendStartedFocus) {
@@ -75,7 +75,7 @@ export function useSocial({ userId, currentSession, onBoostReceived, onFriendSta
       notifiedSessionIds.current.forEach(id => {
         if (!activeIds.has(id)) notifiedSessionIds.current.delete(id);
       });
-    }, 10_000);
+    }, 60_000); // poll every 60s instead of 10s
 
     // Real-time: incoming friend requests
     unsubRequests.current = subscribeToFriendRequests(userId, async () => {
@@ -117,7 +117,7 @@ export function useSocial({ userId, currentSession, onBoostReceived, onFriendSta
     const dbSessionId = currentSession?.dbId;
     if (!dbSessionId || !isSupabaseReady) return;
 
-    console.debug('[social] subscribing to boosts on session:', dbSessionId);
+
     unsubBoosts.current = subscribeToBoosts(dbSessionId, async (boost) => {
       const { data } = await supabase
         .from('profiles')

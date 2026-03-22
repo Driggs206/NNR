@@ -5,10 +5,11 @@
 import React, { useState, useMemo } from 'react';
 import TaskCard from '../components/TaskCard';
 import AddTaskModal from '../components/AddTaskModal';
+import DailyQuestsPanel from '../components/DailyQuestsPanel';
 import { sortTasks } from '../utils/rewards';
 
 export default function Dashboard({
-  user, tasks, onComplete, onToggleSubtask, onSnooze, onDelete, onAddTask, onStartFocus,
+  user, tasks, onComplete, onToggleSubtask, onSnooze, onDelete, onAddTask, onStartFocus, dailyQuests,
 }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [filter, setFilter] = useState('all');
@@ -95,6 +96,15 @@ export default function Dashboard({
         </div>
       )}
 
+      {/* Daily quests */}
+      {dailyQuests && (
+        <DailyQuestsPanel
+          quests={dailyQuests.quests}
+          onClaim={dailyQuests.claimQuest}
+          justCompleted={dailyQuests.justCompleted}
+        />
+      )}
+
       {/* Quick-add bar */}
       <form onSubmit={handleQuickAdd} className="quick-add-bar">
         <input
@@ -109,6 +119,15 @@ export default function Dashboard({
           + Details
         </button>
       </form>
+
+      {/* Daily quests */}
+      {dailyQuests && (
+        <DailyQuestsPanel
+          quests={dailyQuests.quests}
+          onClaim={dailyQuests.claimQuest}
+          justCompleted={dailyQuests.justCompleted}
+        />
+      )}
 
       {/* Filter tabs */}
       <div className="filter-tabs">

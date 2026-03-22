@@ -25,6 +25,7 @@ const INITIAL_COMBAT_STATE = {
   monstersKilled: 0,
   equipped: DEFAULT_EQUIPPED,
   inventory: [],
+  pendingLoot: [],   // items waiting in chest
   activeBuffs: [],
   phaseEffects: [],
   lastActiveMs: Date.now(),
@@ -71,7 +72,7 @@ export function useCombat({ user, userId = null, focusSessionActive = false, onG
       clearTimeout(syncTimer.current);
       syncTimer.current = setTimeout(() => {
         upsertCombatState(userId, toSave);
-      }, 3000);
+      }, 30000); // sync every 30s, not 3s — reduces Supabase IO dramatically
     }
   }, [state, userId]);
 
@@ -128,16 +129,26 @@ export function useCombat({ user, userId = null, focusSessionActive = false, onG
       }
 
       if (newHp <= 0) {
-        // Monster killed — fire rewards and toast, no blocking modal
+        // Monster killed — fire rewards, loot goes to chest
         const rewards = rollMonsterRewards(mon);
         if (onGoldEarned) onGoldEarned(rewards.gold);
         if (onXpEarned)   onXpEarned(rewards.xp);
-        if (rewards.loot.length > 0 && onLootDrop) onLootDrop(rewards.loot, mon.name);
         if (onKillToast)  onKillToast({ ...rewards, monsterName: mon.name, isBoss: mon.isBoss });
+
+        // Add loot to pending chest instead of directly to inventory
+        const newPendingLoot = rewards.loot.length > 0
+          ? [...(prev.pendingLoot || []), ...rewards.loot.map(id => ({
+              id,
+              from: mon.name,
+              fromBoss: mon.isBoss || false,
+              timestamp: Date.now(),
+            }))]
+          : (prev.pendingLoot || []);
 
         const nextMon = getNextMonster(prev.currentMonsterId);
         return {
           ...prev,
+          pendingLoot: newPendingLoot,
           currentMonsterId: nextMon.id,
           monsterHp: nextMon.max_hp,
           monstersKilled: prev.monstersKilled + 1,
@@ -254,6 +265,19 @@ export function useCombat({ user, userId = null, focusSessionActive = false, onG
     setState(prev => ({ ...prev, inventory: [...prev.inventory, itemId] }));
   }, []);
 
+  // ── Claim chest — move all pendingLoot to inventory ───────
+  const claimChest = useCallback(() => {
+    setState(prev => {
+      if (!prev.pendingLoot?.length) return prev;
+      const newItems = prev.pendingLoot.map(l => l.id);
+      return {
+        ...prev,
+        inventory: [...prev.inventory, ...newItems],
+        pendingLoot: [],
+      };
+    });
+  }, []);
+
   // ── Buy item from shop ────────────────────────────────────
   const buyItem = useCallback((itemId, price, onDeductGold) => {
     const canAfford = onDeductGold(price);
@@ -290,12 +314,16 @@ export function useCombat({ user, userId = null, focusSessionActive = false, onG
       const rewards = rollMonsterRewards(mon);
       if (onGoldEarned) onGoldEarned(rewards.gold);
       if (onXpEarned)   onXpEarned(rewards.xp);
-      if (rewards.loot.length > 0 && onLootDrop) onLootDrop(rewards.loot, mon.name);
       if (onKillToast)  onKillToast({ ...rewards, monsterName: mon.name, isBoss: mon.isBoss });
+      const newPendingLoot = rewards.loot.length > 0
+        ? [...(prev.pendingLoot || []), ...rewards.loot.map(id => ({
+            id, from: mon.name, fromBoss: mon.isBoss || false, timestamp: Date.now(),
+          }))]
+        : (prev.pendingLoot || []);
       const nextMon = getNextMonster(prev.currentMonsterId);
-      return { ...prev, currentMonsterId: nextMon.id, monsterHp: nextMon.max_hp, monstersKilled: prev.monstersKilled + 1, phaseEffects: [] };
+      return { ...prev, currentMonsterId: nextMon.id, monsterHp: nextMon.max_hp, monstersKilled: prev.monstersKilled + 1, phaseEffects: [], pendingLoot: newPendingLoot };
     });
-  }, [onGoldEarned, onXpEarned, onLootDrop, onKillToast]);
+  }, [onGoldEarned, onXpEarned, onKillToast]);
 
   // ── Dismiss low-energy toggle ─────────────────────────────
   const toggleLowEnergy = useCallback(() => {
@@ -309,6 +337,7 @@ export function useCombat({ user, userId = null, focusSessionActive = false, onG
     playerStats,
     equipped: state.equipped,
     inventory: state.inventory,
+    pendingLoot: state.pendingLoot || [],
     activeBuffs: state.activeBuffs || [],
     monstersKilled: state.monstersKilled,
     floatingNumbers,
@@ -320,6 +349,7 @@ export function useCombat({ user, userId = null, focusSessionActive = false, onG
     equipItem,
     unequipItem,
     addToInventory,
+    claimChest,
     buyItem,
     sellItem,
     sellEquipped,

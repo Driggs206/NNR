@@ -19,8 +19,10 @@ export default function CombatStrip({
   onToggleLowEnergy,
   combatLog = [],
   user,
+  lastKill,   // { monsterName, isBoss } — set on kill, cleared after flash
 }) {
-  const [shake, setShake] = useState(false);
+  const [shake, setShake]         = useState(false);
+  const [slainFlash, setSlainFlash] = useState(null);
   const hpPercent = Math.max(0, (currentHp / monster.max_hp) * 100);
   const dps = calcDisplayDPS(playerStats);
 
@@ -32,6 +34,14 @@ export default function CombatStrip({
       return () => clearTimeout(t);
     }
   }, [floatingNumbers.length]);
+
+  useEffect(() => {
+    if (lastKill) {
+      setSlainFlash(lastKill);
+      const t = setTimeout(() => setSlainFlash(null), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [lastKill]);
 
   // HP bar color
   const hpColor = hpPercent > 50 ? '#5CDD8B' : hpPercent > 25 ? '#F5A623' : '#FF3860';
@@ -66,6 +76,13 @@ export default function CombatStrip({
 
         {/* Monster sprite (placeholder art) */}
         <div className={`combat-arena ${shake ? 'shake' : ''}`}>
+          {/* Slain flash */}
+          {slainFlash && (
+            <div className={`slain-flash ${slainFlash.isBoss ? 'boss' : ''}`}>
+              <div className="slain-name">{slainFlash.monsterName}</div>
+              <div className="slain-text">{slainFlash.isBoss ? '👑 BOSS SLAIN!' : '☠ SLAIN'}</div>
+            </div>
+          )}
           {/* Player sprite */}
           <div className="player-sprite">
             <div className="sprite-figure player-figure">
@@ -264,6 +281,57 @@ export default function CombatStrip({
         }
 
         /* Arena */
+        /* ── Slain flash ── */
+        .slain-flash {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          background: rgba(5, 4, 15, 0.75);
+          z-index: 10;
+          pointer-events: none;
+          animation: slainIn 0.2s ease forwards, slainOut 0.4s ease 1.6s forwards;
+          border-radius: var(--radius-lg);
+        }
+
+        .slain-flash.boss { background: rgba(20, 5, 40, 0.85); }
+
+        @keyframes slainIn {
+          from { opacity: 0; transform: scale(1.1); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slainOut {
+          from { opacity: 1; }
+          to   { opacity: 0; }
+        }
+
+        .slain-name {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+
+        .slain-text {
+          font-family: var(--font-display);
+          font-size: 1.4rem;
+          font-weight: 800;
+          color: var(--coral);
+          text-shadow: 0 0 20px rgba(255,101,132,0.8);
+          letter-spacing: 0.05em;
+        }
+
+        .slain-flash.boss .slain-text {
+          color: var(--gold);
+          text-shadow: 0 0 24px rgba(245,200,66,0.8);
+          font-size: 1.6rem;
+        }
+
         .combat-arena {
           display: flex;
           align-items: center;

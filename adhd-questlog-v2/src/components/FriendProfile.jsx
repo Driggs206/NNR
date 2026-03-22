@@ -85,7 +85,7 @@ function WallPost({ post, wallOwnerId, currentUserId, onDelete }) {
 }
 
 // ─── Wall tab ─────────────────────────────────────────────
-function WallTab({ wallOwnerId, currentUserId, ownerName }) {
+function WallTab({ wallOwnerId, currentUserId, ownerName, onWallPost }) {
   const [posts, setPosts]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [draft, setDraft]       = useState('');
@@ -127,6 +127,7 @@ function WallTab({ wallOwnerId, currentUserId, ownerName }) {
     if (post) {
       setPosts(prev => [post, ...prev]);
       setDraft('');
+      if (onWallPost) onWallPost();
     }
     setPosting(false);
     inputRef.current?.focus();
@@ -202,7 +203,7 @@ function WallTab({ wallOwnerId, currentUserId, ownerName }) {
 export default function FriendProfile({
   friendId, currentUserId, onClose,
   fetchFriendProfile, activeSessions, boostFriend, boostsSent,
-  isFriend = false, onAddFriend, onAvatarChange,
+  isFriend = false, onAddFriend, onAvatarChange, onWallPost,
 }) {
   const [data, setData]             = useState(null);
   const [loading, setLoading]       = useState(true);
@@ -457,6 +458,7 @@ export default function FriendProfile({
                 wallOwnerId={friendId}
                 currentUserId={currentUserId}
                 ownerName={profile.display_name}
+                onWallPost={onWallPost}
               />
             </div>
           )}

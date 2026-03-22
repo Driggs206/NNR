@@ -13,7 +13,7 @@ const PRESETS = [
   { label: '60 min', minutes: 60, emoji: '⭐' },
 ];
 
-export default function FocusMode({ session, onStart, onPause, onResume, onStop, formatTime, tasks }) {
+export default function FocusMode({ session, onStart, onPause, onResume, onStop, formatTime, tasks, lastBoost }) {
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedMinutes, setSelectedMinutes] = useState(25);
 
@@ -231,6 +231,40 @@ export default function FocusMode({ session, onStart, onPause, onResume, onStop,
 
   return (
     <div className="focus-active">
+
+      {/* Boost overlay — dramatic full-screen pulse when boosted */}
+      {lastBoost && (
+        <div className="focus-boost-overlay">
+          {/* Particle burst */}
+          <div className="fbo-particles">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="fbo-particle" style={{
+                '--angle': `${i * 30}deg`,
+                '--delay': `${i * 0.04}s`,
+                '--color': i % 3 === 0 ? '#4FC3F7' : i % 3 === 1 ? '#B39DDB' : '#F5C842',
+              }} />
+            ))}
+          </div>
+          <div className="fbo-content">
+            {/* Avatar */}
+            <div className="fbo-avatar-ring">
+              <div className="fbo-avatar-inner">
+                {lastBoost.avatarIcon ? (
+                  <img src={lastBoost.avatarIcon} alt={lastBoost.name} className="fbo-avatar-img" />
+                ) : (
+                  <span className="fbo-avatar-emoji">💙</span>
+                )}
+              </div>
+            </div>
+            <div className="fbo-hearts">💙</div>
+            <div className="fbo-name">{lastBoost.name}</div>
+            <div className="fbo-msg">is cheering you on!</div>
+            <div className="fbo-sub">+15% XP this session ⚡</div>
+            <div className="fbo-tagline">You've got this. Keep going.</div>
+          </div>
+        </div>
+      )}
+
       <div className="focus-active-inner">
         {/* Task name */}
         <div className="focus-task-name">{session.taskTitle}</div>
@@ -298,6 +332,169 @@ export default function FocusMode({ session, onStart, onPause, onResume, onStop,
           justify-content: center;
           padding: var(--space-8);
           background: radial-gradient(ellipse at center, rgba(79,195,247,0.05) 0%, transparent 70%);
+          position: relative;
+          overflow: hidden;
+        }
+
+        /* ── Boost overlay ── */
+        .focus-boost-overlay {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 100;
+          pointer-events: none;
+          animation: boostOverlayIn 0.4s ease forwards,
+                     boostOverlayOut 0.5s ease 5.5s forwards;
+        }
+
+        .focus-boost-overlay::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse at center, rgba(79,195,247,0.15) 0%, transparent 65%);
+          animation: boostPulse 1.2s ease infinite alternate;
+        }
+
+        @keyframes boostOverlayIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+
+        @keyframes boostOverlayOut {
+          from { opacity: 1; }
+          to   { opacity: 0; }
+        }
+
+        @keyframes boostPulse {
+          from { opacity: 0.5; transform: scale(0.95); }
+          to   { opacity: 1;   transform: scale(1.05); }
+        }
+
+        /* Particles */
+        .fbo-particles {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+        }
+
+        .fbo-particle {
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--color);
+          animation: particleBurst 1.4s var(--delay) ease-out forwards;
+          opacity: 0;
+        }
+
+        @keyframes particleBurst {
+          0%   { opacity: 1; transform: rotate(var(--angle)) translateY(0) scale(1); }
+          80%  { opacity: 0.8; transform: rotate(var(--angle)) translateY(-180px) scale(0.6); }
+          100% { opacity: 0; transform: rotate(var(--angle)) translateY(-220px) scale(0); }
+        }
+
+        .fbo-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: var(--space-3);
+          background: rgba(10, 8, 28, 0.92);
+          border: 2px solid rgba(79,195,247,0.5);
+          border-radius: var(--radius-xl);
+          padding: var(--space-8) var(--space-12);
+          box-shadow: 0 0 60px rgba(79,195,247,0.25), 0 0 120px rgba(79,195,247,0.1);
+          backdrop-filter: blur(16px);
+          animation: boostCardBounce 0.6s var(--ease-spring);
+          text-align: center;
+          position: relative;
+          z-index: 1;
+        }
+
+        @keyframes boostCardBounce {
+          0%   { transform: translateY(-40px) scale(0.85); opacity: 0; }
+          60%  { transform: translateY(8px) scale(1.03); opacity: 1; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .fbo-avatar-ring {
+          width: 88px;
+          height: 88px;
+          border-radius: 50%;
+          background: conic-gradient(from 0deg, #4FC3F7, #B39DDB, #F5C842, #4FC3F7);
+          padding: 3px;
+          animation: ringRotate 3s linear infinite;
+        }
+
+        @keyframes ringRotate {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+
+        .fbo-avatar-inner {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: var(--bg-elevated);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .fbo-avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+        }
+
+        .fbo-avatar-emoji { font-size: 2.5rem; }
+
+        .fbo-hearts {
+          font-size: 2.5rem;
+          animation: heartBeat 0.5s ease infinite alternate;
+        }
+
+        @keyframes heartBeat {
+          from { transform: scale(1); }
+          to   { transform: scale(1.2); }
+        }
+
+        .fbo-name {
+          font-family: var(--font-display);
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: #4FC3F7;
+          text-shadow: 0 0 20px rgba(79,195,247,0.6);
+        }
+
+        .fbo-msg {
+          font-size: 1rem;
+          color: var(--text-secondary);
+          font-style: italic;
+        }
+
+        .fbo-sub {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: var(--gold);
+          background: var(--gold-dim);
+          border-radius: var(--radius-full);
+          padding: 4px 14px;
+          border: 1px solid rgba(245,200,66,0.3);
+          margin-top: var(--space-2);
+        }
+
+        .fbo-tagline {
+          font-size: 0.78rem;
+          color: var(--text-muted);
+          font-style: italic;
+          margin-top: 2px;
         }
 
         .focus-active-inner {

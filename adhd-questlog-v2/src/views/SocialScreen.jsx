@@ -127,7 +127,7 @@ function ActiveFocusCard({ session, onBoost, alreadyBoosted, onViewProfile }) {
 }
 
 // ─── Main Screen ──────────────────────────────────────────
-export default function SocialScreen({ social, userId, isSupabaseReady, onAvatarChange }) {
+export default function SocialScreen({ social, userId, isSupabaseReady, onAvatarChange, onBoostSent, onWallPost }) {
   const [tab, setTab]               = useState('friends');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingFriend, setViewingFriend] = useState(null);
@@ -362,11 +362,12 @@ export default function SocialScreen({ social, userId, isSupabaseReady, onAvatar
           onClose={() => setViewingFriend(null)}
           fetchFriendProfile={fetchFriendProfile}
           activeSessions={activeSessions}
-          boostFriend={boostFriend}
+          boostFriend={(sessionId) => { boostFriend(sessionId); if (onBoostSent) onBoostSent(); }}
           boostsSent={boostsSent}
           isFriend={friendIdSet.has(viewingFriend)}
           onAddFriend={sendRequest}
           onAvatarChange={onAvatarChange}
+          onWallPost={onWallPost}
         />
       )}
 

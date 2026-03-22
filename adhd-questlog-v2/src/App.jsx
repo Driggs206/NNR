@@ -3,6 +3,7 @@
 // ============================================================
 
 import React, { useState, useCallback } from 'react';
+import { OFFLINE_MODE } from './devConfig';
 import { useAuth }        from './hooks/useAuth';
 import { useGameState, useFocusTimer } from './hooks/useGameState';
 import { useCombat }      from './hooks/useCombat';
@@ -13,9 +14,11 @@ import { startFocusSession, endFocusSession } from './lib/db';
 import AuthScreen       from './components/AuthScreen';
 import Navigation       from './components/Navigation';
 import CombatStrip      from './components/CombatStrip';
+import LootChest, { ChestButton } from './components/LootChest';
 import DevPanel         from './components/DevPanel';
 import RewardEffects    from './components/RewardEffects';
 import CosmicBackground from './components/CosmicBackground';
+import { useDailyQuests } from './hooks/useDailyQuests';
 
 import Dashboard        from './views/Dashboard';
 import FocusMode        from './views/FocusMode';
@@ -30,7 +33,8 @@ import SettingsScreen   from './views/SettingsScreen';
 import './styles/globals.css';
 
 export default function App() {
-  const [view, setView]       = useState('dashboard');
+  const [view, setView]         = useState('dashboard');
+  const [chestOpen, setChestOpen] = useState(false);
   const [newLoot, setNewLoot] = useState(false);
 
   // ── Auth ──────────────────────────────────────────────────
@@ -48,20 +52,30 @@ export default function App() {
     unlockTalent, completeFocusSession, applyGoldReward, applyXpReward, setAvatarId, updateUserProfile,
   } = useGameState(userId);
 
+  // ── Daily quests ───────────────────────────────────────────
+  const dailyQuests = useDailyQuests({
+    onGoldEarned: applyGoldReward,
+    onXpEarned:   applyXpReward,
+  });
+
   // ── Focus timer ───────────────────────────────────────────
   const handleFocusEnd = useCallback(async (minutes, completed, sessionId, taskTitle) => {
     if (minutes > 0) {
       const { xp } = completeFocusSession(minutes, completed);
-      // Sync session end to Supabase
       if (userId && sessionId) {
         await endFocusSession(sessionId, minutes, completed, xp);
       }
+      // Daily quest progress
+      if (completed) dailyQuests.updateProgress('focus_sessions');
+      dailyQuests.updateProgress('focus_minutes', Math.floor(minutes));
     }
-  }, [completeFocusSession, userId]);
+  }, [completeFocusSession, userId, dailyQuests]);
 
   const focusTimer = useFocusTimer(handleFocusEnd);
 
   // ── Focus boost received ──────────────────────────────────
+  const [lastBoost, setLastBoost] = useState(null);
+
   const handleBoostReceived = useCallback((boosterName) => {
     addToast({
       type: 'boss',
@@ -70,6 +84,9 @@ export default function App() {
       sub: '+15% XP for this session ⚡',
       duration: 8000,
     });
+    // Show dramatic boost overlay in focus mode
+    setLastBoost({ name: boosterName, at: Date.now() });
+    setTimeout(() => setLastBoost(null), 5000);
   }, [addToast]);
 
   const handleFriendStartedFocus = useCallback((session) => {
@@ -93,17 +110,12 @@ export default function App() {
     onBoostReceived: handleBoostReceived,
     onFriendStartedFocus: handleFriendStartedFocus,
   });
+  const [lastKill, setLastKill] = useState(null);
+
   const handleKillToast = useCallback((reward) => {
-    addToast({
-      type: reward.isBoss ? 'boss' : 'kill',
-      icon: reward.isBoss ? '👑' : '☠',
-      title: `${reward.monsterName} defeated!`,
-      sub: `+${reward.gold} gold · +${reward.xp} XP`,
-      loot: reward.loot,
-      duration: reward.loot?.length > 0 ? 5000 : 3000,
-    });
-    if (reward.loot?.length > 0) setNewLoot(true);
-  }, [addToast]);
+    setLastKill({ monsterName: reward.monsterName, isBoss: reward.isBoss });
+    setTimeout(() => setLastKill(null), 2200);
+  }, []);
 
   const handleOfflineToast = useCallback((gains) => {
     addToast({
@@ -117,7 +129,7 @@ export default function App() {
   const combat = useCombat({
     user, userId,
     focusSessionActive: !!focusTimer.session,
-    onGoldEarned:   (gold) => applyGoldReward(gold),
+    onGoldEarned:   (gold) => { applyGoldReward(gold); dailyQuests.updateProgress('gold_earned', gold); },
     onXpEarned:     (xp)   => applyXpReward(xp),
     onLootDrop:     (loot) => loot.forEach(id => combat.addToInventory(id)),
     onKillToast:    handleKillToast,
@@ -126,10 +138,21 @@ export default function App() {
 
   // ── Task + combat wiring ──────────────────────────────────
   const handleCompleteTask = useCallback((taskId) => {
+    const task = tasks.find(t => t.id === taskId);
     completeTask(taskId);
     combat.onTaskComplete();
     addToast({ type: 'default', icon: '⚡', title: 'Task complete! Power burst!', sub: '+10s attack boost', duration: 2500 });
-  }, [completeTask, combat, addToast]);
+    // Daily quest progress
+    dailyQuests.updateProgress('tasks_completed');
+    if (task?.priority === 'HIGH' || task?.priority === 'URGENT') {
+      dailyQuests.updateProgress('high_priority_completed');
+    }
+    if (task?.effort === 'QUICK' || task?.effort === '5M' || task?.effort === '15M') {
+      dailyQuests.updateProgress('quick_tasks_completed');
+    }
+    const isOverdue = task?.dueDate && new Date(task.dueDate) < new Date();
+    if (isOverdue) dailyQuests.updateProgress('overdue_completed');
+  }, [completeTask, combat, addToast, tasks, dailyQuests]);
 
   const handleToggleSubtask = useCallback((taskId, subtaskId) => {
     toggleSubtask(taskId, subtaskId);
@@ -181,7 +204,7 @@ export default function App() {
   }
 
   // ── Auth gate — only if Supabase is configured ────────────
-  if (isSupabaseReady && (!isLoggedIn || isRecovery)) {
+  if (isSupabaseReady && !OFFLINE_MODE && (!isLoggedIn || isRecovery)) {
     return (
       <>
         <link rel="stylesheet" href="" />
@@ -233,7 +256,29 @@ export default function App() {
           onToggleLowEnergy={combat.toggleLowEnergy}
           combatLog={log}
           user={user}
+          lastKill={lastKill}
         />
+
+        {/* Chest button — shows when loot is waiting */}
+        {combat.pendingLoot.length > 0 && !chestOpen && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0', background: 'rgba(13,12,29,0.6)' }}>
+            <ChestButton
+              pendingLoot={combat.pendingLoot}
+              onClick={() => setChestOpen(true)}
+            />
+          </div>
+        )}
+
+        {/* Loot chest modal */}
+        {chestOpen && (
+          <LootChest
+            pendingLoot={combat.pendingLoot}
+            onClaim={() => {
+              combat.claimChest();
+              setChestOpen(false);
+            }}
+          />
+        )}
 
         <main className="main-content">
           {view === 'dashboard' && (
@@ -242,7 +287,9 @@ export default function App() {
               onComplete={handleCompleteTask}
               onToggleSubtask={handleToggleSubtask}
               onSnooze={snoozeTask} onDelete={deleteTask}
-              onAddTask={addTask} onStartFocus={startFocus}
+              onAddTask={(task) => { addTask(task); dailyQuests.updateProgress('tasks_added'); }}
+              onStartFocus={startFocus}
+              dailyQuests={dailyQuests}
             />
           )}
           {view === 'focus' && (
@@ -252,6 +299,7 @@ export default function App() {
               onResume={focusTimer.resume} onStop={focusTimer.stop}
               formatTime={focusTimer.formatTime}
               tasks={tasks.filter(t => t.status === 'pending')}
+              lastBoost={lastBoost}
             />
           )}
           {view === 'social' && (
@@ -260,6 +308,8 @@ export default function App() {
               userId={userId}
               isSupabaseReady={isSupabaseReady}
               onAvatarChange={setAvatarId}
+              onBoostSent={() => dailyQuests.updateProgress('boosts_sent')}
+              onWallPost={() => dailyQuests.updateProgress('wall_posts')}
             />
           )}
           {view === 'inventory' && (
